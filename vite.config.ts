@@ -17,6 +17,6 @@ export default defineConfig(({ mode }) => ({
   base: "https://quonaro.github.io/",
   build: {
     outDir: "dist",
-    assetsDir: "./",
+    assetsDir: "./assets/",
   },
 }));
