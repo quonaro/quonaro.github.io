@@ -1,0 +1,72 @@
+{
+  "navigation": {
+    "skills": "Skills",
+    "services": "Services", 
+    "contact": "Contact"
+  },
+  "hero": {
+    "greeting": "$ whoami",
+    "name": "quonaro",
+    "title": "Full-Stack Developer",
+    "description": "Building fast, reliable web applications with <fastapi>FastAPI</fastapi>, <vue3>Vue 3</vue3>, and modern tech.",
+    "aiDescription": "Thoughtfully integrating AI to accelerate development.",
+    "startProject": "Start a Project"
+  },
+  "services": {
+    "title": "What I Deliver",
+    "subtitle": "Reliable solutions for startups and tech companies seeking dependable contract development",
+    "fullStack": {
+      "title": "Full-Stack Web Applications",
+      "description": "End-to-end development of scalable web applications using FastAPI, Vue 3, and PostgreSQL. Clean architecture, comprehensive testing, and production-ready deployment."
+    },
+    "ai": {
+      "title": "AI-Augmented Development",
+      "description": "Leveraging AI tools for code generation, testing, and documentation while maintaining clean, maintainable codebases. Accelerated development without sacrificing quality."
+    },
+    "legacy": {
+      "title": "Legacy System Modernization",
+      "description": "Migrating legacy applications from jQuery and Django to modern FastAPI + Vue architectures. Incremental refactoring with minimal downtime."
+    },
+    "performance": {
+      "title": "Performance Optimization",
+      "description": "Identifying and resolving bottlenecks with Rust-powered optimizations. Database query optimization, caching strategies, and system architecture improvements."
+    },
+    "quote": {
+      "text": "\"Senior engineer you'd trust with your core product\"",
+      "subtext": "Professional, calm, confident — not salesy. Engineering depth over flashy demos."
+    }
+  },
+  "skills": {
+    "title": "Technical Skills",
+    "subtitle": "Modern stack for reliable development",
+    "terminalCommand": "grep -i \"passion\" skills.txt",
+    "terminalResult": "→ Building reliable, scalable solutions"
+  },
+  "contact": {
+    "title": "Let's Build Something Together",
+    "subtitle": "Need a reliable full-stack developer? Reach out via email or Telegram.",
+    "email": "Email",
+    "emailDescription": "Preferred for project discussions and detailed requirements",
+    "sendEmail": "Send Email",
+    "telegram": "Telegram",
+    "telegramDescription": "Quick questions and real-time communication",
+    "messageTelegram": "Message on Telegram",
+    "freelance": "Open to Freelance Projects",
+    "services": [
+      "Full-stack web applications",
+      "API development & integration",
+      "Legacy system modernization",
+      "Performance optimization",
+      "Technical consulting"
+    ],
+    "location": "Based in Russia • Remote worldwide",
+    "availability": "Available for new projects",
+    "terminal": "$ git commit -m \"Ready to collaborate\"",
+    "terminalMessage": "→ Let's build something amazing together"
+  },
+  "common": {
+    "demo": "Demo",
+    "code": "Code",
+    "technologies": "Technologies"
+  }
+}

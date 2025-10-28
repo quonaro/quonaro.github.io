@@ -1,0 +1,85 @@
+name: Deploy to main branch
+
+on:
+  push:
+    branches: [ source ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v4
+      with:
+        ref: quonaro-src
+        token: ${{ secrets.DEPLOY_TOKEN }}
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build project
+      run: npm run build
+    
+    - name: Deploy to main branch
+      run: |
+        # Configure git
+        git config --local user.email "quonaro@mail.ru"
+        git config --local user.name "quonaro"
+        
+        # Debug: Check if dist directory exists before switching branches
+        echo "Checking dist directory before branch switch..."
+        ls -la
+        
+        # Copy built files from dist to a temporary location
+        if [ -d "dist" ] && [ "$(ls -A dist)" ]; then
+          echo "Copying dist files to temp directory..."
+          cp -r dist /tmp/dist_backup
+        else
+          echo "Error: dist directory is empty or does not exist"
+          exit 1
+        fi
+        
+        # Create or checkout main branch
+        git checkout -B main
+        
+        # Remove all files except .git
+        find . -maxdepth 1 -not -name '.git' -not -name '.' -exec rm -rf {} +
+        
+        # Copy built files from temp location to root
+        echo "Copying files from temp to current directory..."
+        echo "Contents of /tmp/dist_backup:"
+        ls -la /tmp/dist_backup/
+        
+        # Copy all files including hidden ones
+        cp -r /tmp/dist_backup/. .
+        
+        # Create .nojekyll file to disable Jekyll processing
+        touch .nojekyll
+        
+        # Debug: Check what was copied
+        echo "Contents after copy:"
+        ls -la
+        
+        # Add all files (force add, ignoring .gitignore)
+        git add -f .
+        
+        # Debug: Check git status
+        echo "Git status:"
+        git status
+        
+        # Commit changes
+        git commit -m "Deploy: $(date '+%Y-%m-%d %H:%M:%S')" || exit 0
+        
+        # Push to main branch
+        git push origin main --force
+        
+    # GitHub Pages deployment is handled by the previous step
+    # No need for additional peaceiris/actions-gh-pages step
