@@ -41,7 +41,7 @@ const Navigation = () => {
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="font-mono text-lg font-semibold text-foreground hover:text-primary transition-smooth"
           >
-            <span className="text-terminal">$</span> quonaro.dev
+            <a href="https://github.com/quonaro"><span className="text-terminal">$</span> quonaro.dev</a>
           </button>
 
           {/* Navigation items */}
