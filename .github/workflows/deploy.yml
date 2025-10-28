@@ -13,7 +13,7 @@ jobs:
     - name: Checkout source code
       uses: actions/checkout@v4
       with:
-        ref: quonaro-src
+        ref: source
         token: ${{ secrets.DEPLOY_TOKEN }}
     
     - name: Setup Node.js
