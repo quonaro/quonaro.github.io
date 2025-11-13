@@ -2,7 +2,10 @@
   "navigation": {
     "skills": "Skills",
     "services": "Services", 
-    "contact": "Contact"
+    "contact": "Contact",
+    "projects": "Projects",
+    "loading": "Loading",
+    "noProjects": "No projects"
   },
   "hero": {
     "greeting": "$ whoami",

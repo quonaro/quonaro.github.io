@@ -2,7 +2,10 @@
   "navigation": {
     "skills": "Навыки",
     "services": "Услуги", 
-    "contact": "Контакты"
+    "contact": "Контакты",
+    "projects": "Проекты",
+    "loading": "Загрузка",
+    "noProjects": "Нет проектов"
   },
   "hero": {
     "greeting": "$ whoami",
