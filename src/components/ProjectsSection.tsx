@@ -17,7 +17,7 @@ const ProjectsSection = () => {
   const projects: Project[] = [
     {
       name: "Specula",
-      description: "Веб-приложение Specula",
+      description: "Альтернатива Swagger / Redoc с поддержкой группировки и одновременной работы с несколькими спецификациями",
       url: "https://quonaro.github.io/Specula",
       githubUrl: "https://github.com/quonaro/Specula",
       icon: "🔭",
