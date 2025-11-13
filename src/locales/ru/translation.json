@@ -3,9 +3,7 @@
     "skills": "Навыки",
     "services": "Услуги", 
     "contact": "Контакты",
-    "projects": "Проекты",
-    "loading": "Загрузка",
-    "noProjects": "Нет проектов"
+    "projects": "Проекты"
   },
   "hero": {
     "greeting": "$ whoami",
@@ -66,6 +64,10 @@
     "availability": "Доступен для новых проектов",
     "terminal": "$ git commit -m \"Готов к сотрудничеству\"",
     "terminalMessage": "→ Давайте создадим что-то удивительное вместе"
+  },
+  "projects": {
+    "title": "Проекты",
+    "subtitle": "Мои работы и проекты"
   },
   "common": {
     "demo": "Демо",

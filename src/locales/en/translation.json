@@ -3,9 +3,7 @@
     "skills": "Skills",
     "services": "Services", 
     "contact": "Contact",
-    "projects": "Projects",
-    "loading": "Loading",
-    "noProjects": "No projects"
+    "projects": "Projects"
   },
   "hero": {
     "greeting": "$ whoami",
@@ -66,6 +64,10 @@
     "availability": "Available for new projects",
     "terminal": "$ git commit -m \"Ready to collaborate\"",
     "terminalMessage": "→ Let's build something amazing together"
+  },
+  "projects": {
+    "title": "Projects",
+    "subtitle": "My works and projects"
   },
   "common": {
     "demo": "Demo",
