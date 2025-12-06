@@ -49,25 +49,25 @@ const SkillsSection = () => {
   };
 
   return (
-    <section id="skills" className="py-20 bg-background">
-      <div className="container max-w-6xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+    <section id="skills" className="py-12 sm:py-16 md:py-20 bg-background">
+      <div className="container max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-10 sm:mb-12 md:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
             {t('skills.title')}
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto px-2 sm:px-0">
             {t('skills.subtitle')}
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-6 sm:gap-8">
           {skills.map((skillGroup, groupIndex) => (
             <div
               key={skillGroup.category}
-              className="bg-gradient-surface p-6 rounded-xl border border-subtle hover:border-primary/20 transition-smooth group"
+              className="bg-gradient-surface p-4 sm:p-6 rounded-xl border border-subtle hover:border-primary/20 transition-smooth group"
               style={{ animationDelay: `${groupIndex * 200}ms` }}
             >
-              <h3 className="text-xl font-semibold mb-6 text-foreground group-hover:text-primary transition-smooth">
+              <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-foreground group-hover:text-primary transition-smooth">
                 {skillGroup.category}
               </h3>
               
@@ -75,7 +75,7 @@ const SkillsSection = () => {
                 {skillGroup.technologies.map((tech, techIndex) => (
                   <div key={tech.name} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className={`text-sm font-medium ${tech.primary ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      <span className={`text-xs sm:text-sm font-medium ${tech.primary ? 'text-foreground' : 'text-muted-foreground'}`}>
                         {tech.name}
                       </span>
                       {tech.primary && (
@@ -98,8 +98,8 @@ const SkillsSection = () => {
         </div>
 
         {/* Terminal-style command at bottom */}
-        <div className="mt-16 text-center">
-          <div className="inline-block bg-surface/50 backdrop-blur-sm border border-subtle rounded-lg p-4 font-mono text-sm text-muted-foreground">
+        <div className="mt-10 sm:mt-12 md:mt-16 text-center px-2 sm:px-0">
+          <div className="inline-block bg-surface/50 backdrop-blur-sm border border-subtle rounded-lg p-3 sm:p-4 font-mono text-xs sm:text-sm text-muted-foreground max-w-full overflow-x-auto">
             <div className="flex items-center justify-center gap-2">
               <span className="text-terminal">$</span>
               <TypewriterText 

@@ -32,35 +32,35 @@ const ServicesSection = () => {
   ];
 
   return (
-    <section id="services" className="py-20 bg-muted/30">
-      <div className="container max-w-6xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+    <section id="services" className="py-12 sm:py-16 md:py-20 bg-muted/30">
+      <div className="container max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-10 sm:mb-12 md:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
             {t('services.title')}
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto px-2 sm:px-0">
             {t('services.subtitle')}
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
           {services.map((service, index) => (
             <div
               key={service.title}
-              className="bg-surface/80 backdrop-blur-sm p-8 rounded-xl border border-subtle hover:border-primary/30 transition-smooth group hover:shadow-subtle"
+              className="bg-surface/80 backdrop-blur-sm p-6 sm:p-8 rounded-xl border border-subtle hover:border-primary/30 transition-smooth group hover:shadow-subtle"
               style={{ animationDelay: `${index * 150}ms` }}
             >
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 p-3 bg-primary/10 rounded-lg text-primary group-hover:bg-primary/20 transition-smooth">
-                  {service.icon}
+              <div className="flex items-start gap-3 sm:gap-4">
+                <div className="flex-shrink-0 p-2 sm:p-3 bg-primary/10 rounded-lg text-primary group-hover:bg-primary/20 transition-smooth">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6">{service.icon}</div>
                 </div>
                 
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold mb-3 group-hover:text-primary transition-smooth">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3 group-hover:text-primary transition-smooth">
                     {service.title}
                   </h3>
                   
-                  <p className="text-muted-foreground leading-relaxed mb-4">
+                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-3 sm:mb-4">
                     {service.description}
                   </p>
                   
@@ -81,12 +81,12 @@ const ServicesSection = () => {
         </div>
 
         {/* Value proposition */}
-        <div className="mt-16 text-center">
-          <div className="inline-block bg-gradient-surface p-6 rounded-xl border border-subtle max-w-2xl">
-            <p className="text-foreground font-medium mb-2">
+        <div className="mt-10 sm:mt-12 md:mt-16 text-center px-2 sm:px-0">
+          <div className="inline-block bg-gradient-surface p-4 sm:p-6 rounded-xl border border-subtle max-w-2xl">
+            <p className="text-sm sm:text-base text-foreground font-medium mb-2">
               {t('services.quote.text')}
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               {t('services.quote.subtext')}
             </p>
           </div>

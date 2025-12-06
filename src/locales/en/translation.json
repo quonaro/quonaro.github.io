@@ -67,7 +67,25 @@
   },
   "projects": {
     "title": "Projects",
-    "subtitle": "My works and projects"
+    "subtitle": "My works and projects",
+    "items": {
+      "specula": {
+        "name": "Specula",
+        "description": "Swagger / Redoc alternative with grouping support and simultaneous work with multiple specifications"
+      },
+      "nest": {
+        "name": "Nest",
+        "description": "Declarative task runner in Rust that replaces fragile Makefiles and scattered scripts with a clean, maintainable, and composable workflow"
+      },
+      "safewheel": {
+        "name": "SafeWheel",
+        "description": "Desktop application for managing \"Safe Wheel\" competitions and other events"
+      },
+      "fias": {
+        "name": "FIAS Public API",
+        "description": "Library for accessing data from the Federal Information Address System (FIAS) through public API"
+      }
+    }
   },
   "common": {
     "demo": "Demo",

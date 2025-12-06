@@ -43,14 +43,17 @@ const Navigation = () => {
         ? 'bg-background/95 backdrop-blur-md border-b border-subtle' 
         : 'bg-transparent'
     }`}>
-      <div className="container max-w-6xl mx-auto px-6">
+      <div className="container max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="font-mono text-lg font-semibold text-foreground hover:text-primary transition-smooth"
+            className="font-mono text-sm sm:text-lg font-semibold text-foreground hover:text-primary transition-smooth"
           >
-            <a href="https://github.com/quonaro"><span className="text-terminal">$</span> quonaro.dev</a>
+            <a href="https://github.com/quonaro">
+              <span className="hidden sm:inline"><span className="text-terminal">$</span> quonaro.dev</span>
+              <span className="sm:hidden"><span className="text-terminal">$</span> quonaro</span>
+            </a>
           </button>
 
           {/* Navigation items */}
