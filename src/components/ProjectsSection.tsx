@@ -1,5 +1,7 @@
-import { ExternalLink, Github, BookOpen } from "lucide-react";
+import { Github, ExternalLink } from "lucide-react";
 import { useTranslation } from 'react-i18next';
+import { Button } from "@/components/ui/button";
+import { useInView } from "@/hooks/use-in-view";
 
 interface Project {
   name: string;
@@ -13,6 +15,7 @@ interface Project {
 
 const ProjectsSection = () => {
   const { t } = useTranslation();
+  const { ref: sectionRef, isInView: sectionInView } = useInView({ threshold: 0.1 });
   
   // Здесь вы будете добавлять свои проекты
   const projects: Project[] = [
@@ -22,7 +25,7 @@ const ProjectsSection = () => {
       url: "https://quonaro.github.io/Specula",
       githubUrl: "https://github.com/quonaro/Specula",
       icon: "🔭",
-      technologies: [],
+      technologies: ["Vue.js 3"],
     },
     {
       name: t('projects.items.nest.name'),
@@ -39,7 +42,7 @@ const ProjectsSection = () => {
       url: "https://github.com/quonaro/safe-wheel",
       githubUrl: "https://github.com/quonaro/safe-wheel",
       icon: "🚴",
-      technologies: ["Electron", "Vue.js", "SQLite"],
+      technologies: ["Electron", "Vue.js 3", "SQLite"],
     },
     {
       name: t('projects.items.fias.name'),
@@ -47,7 +50,15 @@ const ProjectsSection = () => {
       url: "https://github.com/quonaro/fias-public-api",
       githubUrl: "https://github.com/quonaro/fias-public-api",
       icon: "🏠",
-      technologies: [],
+      technologies: ["Python"],
+    },
+    {
+      name: t('projects.items.keyschool.name'),
+      description: t('projects.items.keyschool.description'),
+      url: "https://quonaro.github.io/kwork-keyschool",
+      githubUrl: "https://github.com/quonaro/kwork-keyschool",
+      icon: "🎓",
+      technologies: ["Vue.js 3", "Vite", "CSS3"],
     },
   ];
 
@@ -56,9 +67,9 @@ const ProjectsSection = () => {
   }
 
   return (
-    <section id="projects" className="py-12 sm:py-16 md:py-20 bg-background">
+    <section id="projects" ref={sectionRef} className="py-12 sm:py-16 md:py-20 bg-background">
       <div className="container max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-10 sm:mb-12 md:mb-16">
+        <div className={`text-center mb-10 sm:mb-12 md:mb-16 transition-all duration-700 ${sectionInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
             {t('projects.title')}
           </h2>
@@ -71,55 +82,18 @@ const ProjectsSection = () => {
           {projects.map((project, index) => (
             <div
               key={project.name}
-              className="bg-surface/80 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-subtle hover:border-primary/30 transition-smooth group hover:shadow-subtle flex flex-col"
-              style={{ animationDelay: `${index * 100}ms` }}
+              onClick={() => window.open(project.url, '_blank', 'noopener,noreferrer')}
+              className={`bg-surface/80 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-subtle hover:border-primary/30 transition-all duration-700 group hover:shadow-subtle flex flex-col cursor-pointer hover:scale-[1.02] ${sectionInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+              style={{ transitionDelay: `${index * 100}ms` }}
             >
-              {/* Header with icon and links */}
-              <div className="flex items-start justify-between mb-4 gap-2">
-                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                  {project.icon && (
-                    <div className="text-xl sm:text-2xl flex-shrink-0">{project.icon}</div>
-                  )}
-                  <h3 className="text-lg sm:text-xl font-semibold group-hover:text-primary transition-smooth break-words">
-                    {project.name}
-                  </h3>
-                </div>
-                <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                  {project.githubUrl && (
-                    <a
-                      href={project.githubUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-foreground transition-smooth p-1"
-                      onClick={(e) => e.stopPropagation()}
-                      aria-label="GitHub repository"
-                    >
-                      <Github className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </a>
-                  )}
-                  {project.docsUrl && (
-                    <a
-                      href={project.docsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-secondary transition-smooth p-1"
-                      onClick={(e) => e.stopPropagation()}
-                      aria-label="Documentation"
-                    >
-                      <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </a>
-                  )}
-                  <a
-                    href={project.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-smooth p-1"
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label="Project link"
-                  >
-                    <ExternalLink className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </a>
-                </div>
+              {/* Header with icon */}
+              <div className="flex items-center gap-2 sm:gap-3 mb-4">
+                {project.icon && (
+                  <div className="text-xl sm:text-2xl flex-shrink-0">{project.icon}</div>
+                )}
+                <h3 className="text-lg sm:text-xl font-semibold group-hover:text-primary transition-smooth break-words">
+                  {project.name}
+                </h3>
               </div>
 
               {/* Description */}
@@ -128,7 +102,7 @@ const ProjectsSection = () => {
               </p>
 
               {/* Technologies */}
-              <div className="flex flex-wrap gap-2 mt-auto">
+              <div className="flex flex-wrap gap-2 mb-4">
                 {project.technologies.map((tech) => (
                   <span
                     key={tech}
@@ -137,6 +111,36 @@ const ProjectsSection = () => {
                     {tech}
                   </span>
                 ))}
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex flex-wrap gap-2 mt-auto pt-4 border-t border-subtle">
+                {project.githubUrl && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(project.githubUrl, '_blank', 'noopener,noreferrer');
+                    }}
+                    className="flex-1 min-w-0 text-xs sm:text-sm"
+                  >
+                    <Github className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" />
+                    {t('common.code')}
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(project.docsUrl || project.url, '_blank', 'noopener,noreferrer');
+                  }}
+                  className="flex-1 min-w-0 text-xs sm:text-sm"
+                >
+                  <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" />
+                  {t('common.demo')}
+                </Button>
               </div>
             </div>
           ))}

@@ -1,10 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
 import TypewriterText from './TypewriterText';
+import { useInView } from "@/hooks/use-in-view";
 
 const SkillsSection = () => {
   const { t } = useTranslation();
   const [showResult, setShowResult] = useState(false);
+  const { ref: sectionRef, isInView: sectionInView } = useInView({ threshold: 0.1 });
   const skills = [
     {
       category: "Backend",
@@ -49,9 +51,9 @@ const SkillsSection = () => {
   };
 
   return (
-    <section id="skills" className="py-12 sm:py-16 md:py-20 bg-background">
+    <section id="skills" ref={sectionRef} className="py-12 sm:py-16 md:py-20 bg-background">
       <div className="container max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-10 sm:mb-12 md:mb-16">
+        <div className={`text-center mb-10 sm:mb-12 md:mb-16 transition-all duration-700 ${sectionInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
             {t('skills.title')}
           </h2>
@@ -64,8 +66,8 @@ const SkillsSection = () => {
           {skills.map((skillGroup, groupIndex) => (
             <div
               key={skillGroup.category}
-              className="bg-gradient-surface p-4 sm:p-6 rounded-xl border border-subtle hover:border-primary/20 transition-smooth group"
-              style={{ animationDelay: `${groupIndex * 200}ms` }}
+              className={`bg-gradient-surface p-4 sm:p-6 rounded-xl border border-subtle hover:border-primary/20 transition-all duration-700 group hover:scale-[1.02] ${sectionInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+              style={{ transitionDelay: `${groupIndex * 150}ms` }}
             >
               <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-foreground group-hover:text-primary transition-smooth">
                 {skillGroup.category}

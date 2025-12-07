@@ -1,8 +1,10 @@
 import { Code, Cpu, Zap, RefreshCw } from "lucide-react";
 import { useTranslation } from 'react-i18next';
+import { useInView } from "@/hooks/use-in-view";
 
 const ServicesSection = () => {
   const { t } = useTranslation();
+  const { ref: sectionRef, isInView: sectionInView } = useInView({ threshold: 0.1 });
   
   const services = [
     {
@@ -32,9 +34,9 @@ const ServicesSection = () => {
   ];
 
   return (
-    <section id="services" className="py-12 sm:py-16 md:py-20 bg-muted/30">
+    <section id="services" ref={sectionRef} className="py-12 sm:py-16 md:py-20 bg-muted/30">
       <div className="container max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-10 sm:mb-12 md:mb-16">
+        <div className={`text-center mb-10 sm:mb-12 md:mb-16 transition-all duration-700 ${sectionInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
             {t('services.title')}
           </h2>
@@ -47,8 +49,8 @@ const ServicesSection = () => {
           {services.map((service, index) => (
             <div
               key={service.title}
-              className="bg-surface/80 backdrop-blur-sm p-6 sm:p-8 rounded-xl border border-subtle hover:border-primary/30 transition-smooth group hover:shadow-subtle"
-              style={{ animationDelay: `${index * 150}ms` }}
+              className={`bg-surface/80 backdrop-blur-sm p-6 sm:p-8 rounded-xl border border-subtle hover:border-primary/30 transition-all duration-700 group hover:shadow-subtle hover:scale-[1.02] ${sectionInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+              style={{ transitionDelay: `${index * 150}ms` }}
             >
               <div className="flex items-start gap-3 sm:gap-4">
                 <div className="flex-shrink-0 p-2 sm:p-3 bg-primary/10 rounded-lg text-primary group-hover:bg-primary/20 transition-smooth">

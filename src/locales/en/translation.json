@@ -84,12 +84,17 @@
       "fias": {
         "name": "FIAS Public API",
         "description": "Library for accessing data from the Federal Information Address System (FIAS) through public API"
+      },
+      "keyschool": {
+        "name": "Key School Landing",
+        "description": "Test landing page for \"Key\" online school, built with Vue.js 3 featuring modern responsive design and interactive elements"
       }
     }
   },
   "common": {
     "demo": "Demo",
     "code": "Code",
+    "docs": "Docs",
     "technologies": "Technologies"
   }
 }

@@ -1,14 +1,16 @@
 import { Mail, MessageCircle, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from 'react-i18next';
+import { useInView } from "@/hooks/use-in-view";
 
 const ContactSection = () => {
   const { t } = useTranslation();
+  const { ref: sectionRef, isInView: sectionInView } = useInView({ threshold: 0.1 });
   
   return (
-    <section id="contact" className="py-12 sm:py-16 md:py-20 bg-gradient-surface">
+    <section id="contact" ref={sectionRef} className="py-12 sm:py-16 md:py-20 bg-gradient-surface">
       <div className="container max-w-4xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-10 sm:mb-12 md:mb-16">
+        <div className={`text-center mb-10 sm:mb-12 md:mb-16 transition-all duration-700 ${sectionInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
             {t('contact.title')}
           </h2>
@@ -17,7 +19,7 @@ const ContactSection = () => {
           </p>
         </div>
 
-        <div className="bg-surface/80 backdrop-blur-sm p-6 sm:p-8 md:p-12 rounded-2xl border border-subtle">
+        <div className={`bg-surface/80 backdrop-blur-sm p-6 sm:p-8 md:p-12 rounded-2xl border border-subtle transition-all duration-700 ${sectionInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`} style={{ transitionDelay: '200ms' }}>
           {/* Contact options */}
           <div className="grid md:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
             <div className="space-y-5 sm:space-y-6">
