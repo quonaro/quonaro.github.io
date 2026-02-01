@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { X, Upload, Loader2, Plus, Link, Tags, Image as ImageIcon, Layout, Type } from 'lucide-react';
+import { X, Upload, Loader2, Plus, Tags, Image as ImageIcon, Layout, Type, Save } from 'lucide-react';
 import { compressImage } from '@/utils/media-compression';
 import { uploadProjectMedia } from '@/services/projects';
 import { toast } from 'sonner';
@@ -42,7 +42,6 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
             name: { en: '', ru: '' },
             shortDescription: { en: '', ru: '' },
             technologies: [],
-            links: {},
             media: [],
             buttons: []
         }
@@ -72,7 +71,7 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                 const url = await uploadProjectMedia(compressed);
                 appendMedia({ type: 'image', url });
             }
-            toast.success('Images uploaded successfully');
+            toast.success(t('admin.form.successCreated')); // reused for generic success or could add specific one
         } catch (error) {
             console.error(error);
             toast.error(t('admin.form.errorUpload'));
@@ -83,6 +82,10 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
 
     const handleFormSubmit = async (data: Project) => {
         try {
+            if (!initialData) {
+                const slug = data.name.en.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                data.id = `${slug || 'project'}-${Math.random().toString(36).substring(2, 7)}`;
+            }
             await onSubmit(data);
         } catch (error) {
             console.error(error);
@@ -107,11 +110,7 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                         <h3 className="font-bold text-lg">{t('admin.form.basicInfo')}</h3>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label className="text-muted-foreground">{t('admin.form.id')}</Label>
-                            <Input {...register('id', { required: true })} placeholder="project-id" disabled={!!initialData} className="bg-background/50" />
-                        </div>
+                    <div className="grid grid-cols-1 gap-6">
                         <div className="space-y-2">
                             <Label className="flex items-center gap-2 text-muted-foreground">
                                 <Tags className="w-4 h-4" /> {t('admin.form.technologies')}
@@ -125,17 +124,6 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                             />
                         </div>
                     </div>
-
-                    <div className="space-y-3 pt-2">
-                        <Label className="flex items-center gap-2 text-muted-foreground">
-                            <Link className="w-4 h-4" /> Links
-                        </Label>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <Input {...register('links.demo')} placeholder="Demo URL" className="bg-background/50" />
-                            <Input {...register('links.github')} placeholder="GitHub URL" className="bg-background/50" />
-                            <Input {...register('links.docs')} placeholder="Docs URL" className="bg-background/50" />
-                        </div>
-                    </div>
                 </div>
 
                 {/* 2. Dynamic Content (Tabs for RU/EN) */}
@@ -143,35 +131,35 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2 text-primary">
                             <Type className="w-5 h-5" />
-                            <h3 className="font-bold text-lg">Localized Content</h3>
+                            <h3 className="font-bold text-lg">{t('admin.form.localizedContent')}</h3>
                         </div>
                     </div>
 
                     <Tabs defaultValue="en" className="w-full">
                         <TabsList className="grid w-full grid-cols-2 mb-6">
-                            <TabsTrigger value="en">🇺🇸 English</TabsTrigger>
-                            <TabsTrigger value="ru">🇷🇺 Русский</TabsTrigger>
+                            <TabsTrigger value="en">🇺🇸 {t('admin.form.english')}</TabsTrigger>
+                            <TabsTrigger value="ru">🇷🇺 {t('admin.form.russian')}</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="en" className="space-y-4 mt-0 border-none p-0">
                             <div className="space-y-2">
                                 <Label>{t('admin.form.name')} 🇺🇸</Label>
-                                <Input {...register('name.en', { required: true })} placeholder="Project name in English" />
+                                <Input {...register('name.en', { required: true })} placeholder={t('admin.form.namePlaceholderEn')} />
                             </div>
                             <div className="space-y-2">
                                 <Label>{t('admin.form.shortDesc')} 🇺🇸</Label>
-                                <Textarea {...register('shortDescription.en')} placeholder="Describe the project in English..." className="min-h-[100px]" />
+                                <Textarea {...register('shortDescription.en')} placeholder={t('admin.form.descPlaceholderEn')} className="min-h-[100px]" />
                             </div>
                         </TabsContent>
 
                         <TabsContent value="ru" className="space-y-4 mt-0 border-none p-0">
                             <div className="space-y-2">
                                 <Label>{t('admin.form.name')} 🇷🇺</Label>
-                                <Input {...register('name.ru', { required: true })} placeholder="Название на русском" />
+                                <Input {...register('name.ru', { required: true })} placeholder={t('admin.form.namePlaceholderRu')} />
                             </div>
                             <div className="space-y-2">
                                 <Label>{t('admin.form.shortDesc')} 🇷🇺</Label>
-                                <Textarea {...register('shortDescription.ru')} placeholder="Описание на русском..." className="min-h-[100px]" />
+                                <Textarea {...register('shortDescription.ru')} placeholder={t('admin.form.descPlaceholderRu')} className="min-h-[100px]" />
                             </div>
                         </TabsContent>
                     </Tabs>
@@ -211,7 +199,7 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                     <div className="pt-4 border-t border-subtle/50">
                         <Label className="text-muted-foreground mb-2 block">{t('admin.form.videoUrl')} (YouTube)</Label>
                         <div className="flex gap-2">
-                            <Input placeholder="https://youtube.com/watch?v=..." id="video-url-input" className="bg-background/50" />
+                            <Input placeholder={t('admin.form.videoPlaceholder')} id="video-url-input" className="bg-background/50" />
                             <Button type="button" variant="secondary" onClick={() => {
                                 const input = document.getElementById('video-url-input') as HTMLInputElement;
                                 if (input.value) {
@@ -281,49 +269,85 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                         ))}
                     </div>
                 </div>
-
-                {/* Sticky Footer */}
-                <div className="flex justify-end gap-4 sticky bottom-0 bg-background/80 backdrop-blur-md p-6 border-t border-subtle z-20 -mx-4">
-                    <Button type="button" variant="outline" className="rounded-full px-6" onClick={onCancel}>{t('admin.form.cancel')}</Button>
-                    <Button type="submit" disabled={isSubmitting || uploading} className="rounded-full px-8 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20">
-                        {isSubmitting ? (
-                            <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                {t('admin.form.saving')}
-                            </>
-                        ) : t('admin.form.save')}
-                    </Button>
-                </div>
             </div>
 
-            {/* Right Column: Live Preview */}
-            <div className="hidden xl:block w-[400px] 2xl:w-[500px]">
-                <div className="sticky top-24 space-y-4">
-                    <div className="flex items-center justify-between pb-2 border-b border-subtle">
-                        <h3 className="font-bold text-lg flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                            {t('admin.form.previewTitle')}
-                        </h3>
-                        <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full uppercase font-bold text-muted-foreground">Live Card</span>
+            {/* Right Column: Previews & Actions */}
+            <div className="hidden xl:flex flex-col w-[400px] 2xl:w-[500px] space-y-6">
+                <div className="flex-1 overflow-y-auto max-h-[80vh] space-y-6 pr-2 scrollbar-thin scrollbar-thumb-subtle">
+                    {/* RU Preview */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between pb-1 border-b border-subtle">
+                            <h3 className="font-bold text-sm flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                                {t('admin.form.ruPreview')}
+                            </h3>
+                        </div>
+                        <div className="bg-surface/20 border border-subtle rounded-3xl p-4 flex items-center justify-center shadow-xl relative overflow-hidden">
+                            <div className="w-full h-[320px] flex">
+                                <GalleryCard project={{
+                                    ...formValues,
+                                    buttons: formValues.buttons || [],
+                                    media: formValues.media || [],
+                                    technologies: formValues.technologies || []
+                                }} forcedLanguage="ru" />
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="bg-surface/20 border border-subtle rounded-3xl p-6 min-h-[450px] flex items-center justify-center shadow-2xl relative overflow-hidden group/preview">
-                        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-                        <div className="w-full h-[400px] flex">
-                            <GalleryCard project={{
-                                ...formValues,
-                                buttons: formValues.buttons || [],
-                                media: formValues.media || [],
-                                technologies: formValues.technologies || []
-                            }} />
+                    {/* EN Preview */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between pb-1 border-b border-subtle">
+                            <h3 className="font-bold text-sm flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                                {t('admin.form.enPreview')}
+                            </h3>
+                        </div>
+                        <div className="bg-surface/20 border border-subtle rounded-3xl p-4 flex items-center justify-center shadow-xl relative overflow-hidden">
+                            <div className="w-full h-[320px] flex">
+                                <GalleryCard project={{
+                                    ...formValues,
+                                    buttons: formValues.buttons || [],
+                                    media: formValues.media || [],
+                                    technologies: formValues.technologies || []
+                                }} forcedLanguage="en" />
+                            </div>
                         </div>
                     </div>
 
                     <div className="bg-surface/30 p-4 rounded-2xl border border-subtle">
-                        <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                        <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
                             {t('admin.form.previewDesc')}
                         </p>
                     </div>
+                </div>
+
+                {/* Actions (Moved from Sticky Footer) */}
+                <div className="bg-surface/50 backdrop-blur-md p-6 rounded-3xl border border-primary/20 shadow-2xl flex flex-col gap-3">
+                    <Button
+                        type="submit"
+                        disabled={isSubmitting || uploading}
+                        className="w-full rounded-2xl h-12 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 font-bold transition-all active:scale-95"
+                    >
+                        {isSubmitting ? (
+                            <>
+                                <Loader2 className="w-5 h-5 mr-3 animate-spin" />
+                                {t('admin.form.saving')}
+                            </>
+                        ) : (
+                            <>
+                                <Save className="w-5 h-5 mr-3" />
+                                {t('admin.form.save')}
+                            </>
+                        )}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        className="w-full rounded-2xl h-10 text-muted-foreground hover:bg-muted/30"
+                        onClick={onCancel}
+                    >
+                        {t('admin.dashboard.cancel')}
+                    </Button>
                 </div>
             </div>
         </form>

@@ -9,13 +9,14 @@ import { Project } from '@/types/project';
 
 interface GalleryCardProps {
     project: Project;
+    forcedLanguage?: 'en' | 'ru';
 }
 
-export const GalleryCard = ({ project }: GalleryCardProps) => {
+export const GalleryCard = ({ project, forcedLanguage }: GalleryCardProps) => {
     const { t, i18n } = useTranslation();
     const [api, setApi] = useState<CarouselApi>();
 
-    const lang = i18n.language as 'en' | 'ru';
+    const lang = forcedLanguage || (i18n.language as 'en' | 'ru');
 
     // Generate a random delay between 5000ms and 8000ms to desynchronize carousels
     const autoplayDelay = useMemo(() => Math.floor(Math.random() * 3000) + 5000, []);
@@ -23,20 +24,40 @@ export const GalleryCard = ({ project }: GalleryCardProps) => {
     // Helper to get localized text safely
     const getLocal = (field: any, fallback: string = '') => {
         if (!field) return fallback;
-        if (typeof field === 'object') {
-            return field[lang] || field.en || fallback;
+
+        let obj = field;
+        // Handle potential stringified JSON from DB
+        if (typeof field === 'string' && field.trim().startsWith('{')) {
+            try {
+                obj = JSON.parse(field);
+            } catch (e) {
+                return field;
+            }
         }
-        return field; // Legacy support
+
+        if (typeof obj === 'object' && obj !== null) {
+            const currentLang = (forcedLanguage || i18n.language || 'en').split('-')[0];
+            return obj[currentLang] || obj['en'] || obj['ru'] || fallback;
+        }
+        return field;
     };
 
     const getLabel = (btn: any) => {
-        if (btn.label && typeof btn.label === 'object') {
-            return btn.label[lang] || btn.label.en;
+        if (!btn) return 'Link';
+
+        let label = btn.label;
+        if (typeof label === 'string' && label.trim().startsWith('{')) {
+            try { label = JSON.parse(label); } catch (e) { }
+        }
+
+        if (label && typeof label === 'object') {
+            const currentLang = (forcedLanguage || i18n.language || 'en').split('-')[0];
+            return label[currentLang] || label['en'] || label['ru'] || 'Link';
         }
         if (btn.labelKey) {
             return t(btn.labelKey);
         }
-        return 'Link';
+        return typeof label === 'string' ? label : 'Link';
     };
 
     return (
@@ -47,7 +68,7 @@ export const GalleryCard = ({ project }: GalleryCardProps) => {
               flex-1 hover:flex-[2.5]
               group-hover:opacity-50 hover:!opacity-100
               group-hover:grayscale hover:!grayscale-0
-              bg-muted/20 min-h-[300px]
+              bg-muted/20 min-h-[300px] w-full
             `}
         >
             {/* Background Image */}
@@ -100,7 +121,7 @@ export const GalleryCard = ({ project }: GalleryCardProps) => {
 
             {/* Content Content */}
             <div className="absolute inset-0 p-6 pb-10 flex flex-col justify-end pointer-events-none">
-                <div className="transition-all duration-300 transform translate-y-2 group-hover/card:translate-y-0 opacity-100 sm:opacity-90 group-hover/card:opacity-100 pointer-events-auto">
+                <div className="transition-all duration-300 transform translate-y-2 group-hover/card:translate-y-0 opacity-100 sm:opacity-90 group-hover/card:opacity-100 pointer-events-auto w-full">
                     <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 truncate">
                         {getLocal(project.name, 'Project Name')}
                     </h3>
@@ -121,50 +142,35 @@ export const GalleryCard = ({ project }: GalleryCardProps) => {
                             ))}
                         </div>
                         <div className="flex gap-2 flex-wrap">
-                            {project.buttons && project.buttons.length > 0 ? (
-                                project.buttons.map((btn, i) => {
-                                    const iconMap = {
-                                        github: Github,
-                                        docs: FileText,
-                                        download: Download,
-                                        play: Play,
-                                        youtube: Youtube,
-                                        figma: Figma,
-                                        book: Book,
-                                        monitor: Monitor,
-                                        external: ExternalLink
-                                    };
-                                    const Icon = btn.icon && iconMap[btn.icon as keyof typeof iconMap] ? iconMap[btn.icon as keyof typeof iconMap] : ExternalLink;
-                                    return (
-                                        <Button
-                                            key={i}
-                                            variant="secondary"
-                                            size="sm"
-                                            className="h-8 text-xs"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                window.open(btn.url, '_blank', 'noopener,noreferrer');
-                                            }}
-                                        >
-                                            <Icon className="w-3 h-3 mr-1" />
-                                            {getLabel(btn)}
-                                        </Button>
-                                    )
-                                })
-                            ) : (
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    className="h-8 text-xs"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        window.open(project.links?.demo || project.links?.github || '#', '_blank', 'noopener,noreferrer');
-                                    }}
-                                >
-                                    <ExternalLink className="w-3 h-3 mr-1" />
-                                    View
-                                </Button>
-                            )}
+                            {project.buttons && project.buttons.map((btn, i) => {
+                                const iconMap = {
+                                    github: Github,
+                                    docs: FileText,
+                                    download: Download,
+                                    play: Play,
+                                    youtube: Youtube,
+                                    figma: Figma,
+                                    book: Book,
+                                    monitor: Monitor,
+                                    external: ExternalLink
+                                };
+                                const Icon = btn.icon && iconMap[btn.icon as keyof typeof iconMap] ? iconMap[btn.icon as keyof typeof iconMap] : ExternalLink;
+                                return (
+                                    <Button
+                                        key={i}
+                                        variant="secondary"
+                                        size="sm"
+                                        className="h-8 text-xs"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            window.open(btn.url, '_blank', 'noopener,noreferrer');
+                                        }}
+                                    >
+                                        <Icon className="w-3 h-3 mr-1" />
+                                        {getLabel(btn)}
+                                    </Button>
+                                )
+                            })}
                         </div>
                     </div>
                 </div>

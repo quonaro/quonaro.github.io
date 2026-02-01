@@ -8,17 +8,47 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { useProjects } from "@/hooks/useProjects";
 import { Project } from "@/types/project";
 
-// const projects = projectsData as Project[]; // Removed
-
 const ProjectCard = ({ project }: { project: Project }) => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
+    const lang = i18n.language as 'en' | 'ru';
+
+    const getLocalized = (field: any) => {
+        if (!field) return '';
+        let obj = field;
+        if (typeof field === 'string' && field.trim().startsWith('{')) {
+            try { obj = JSON.parse(field); } catch (e) { return field; }
+        }
+        if (typeof obj === 'object' && obj !== null) {
+            const currentLang = (i18n.language || 'en').split('-')[0];
+            return obj[currentLang] || obj['en'] || obj['ru'] || '';
+        }
+        return field;
+    };
 
     const hasMedia = project.media && project.media.length > 0;
     const firstMedia = hasMedia ? project.media![0] : null;
 
+    const primaryUrl = project.buttons && project.buttons.length > 0
+        ? project.buttons[0].url
+        : (project.links?.demo || project.links?.github || '#');
+
+    const getBtnLabel = (btn: any) => {
+        if (!btn) return 'Link';
+        let label = btn.label;
+        if (typeof label === 'string' && label.trim().startsWith('{')) {
+            try { label = JSON.parse(label); } catch (e) { }
+        }
+        if (label && typeof label === 'object') {
+            const currentLang = (i18n.language || 'en').split('-')[0];
+            return label[currentLang] || label['en'] || label['ru'] || 'Link';
+        }
+        if (btn.labelKey) return t(btn.labelKey);
+        return typeof label === 'string' ? label : 'Link';
+    };
+
     return (
         <div
-            onClick={() => window.open(project.links.demo || project.links.github, '_blank', 'noopener,noreferrer')}
+            onClick={() => window.open(primaryUrl, '_blank', 'noopener,noreferrer')}
             className="bg-surface/80 backdrop-blur-sm rounded-xl border border-subtle hover:border-primary/30 transition-all duration-300 group hover:shadow-subtle flex flex-col cursor-pointer overflow-hidden hover:scale-[1.01]"
         >
             {/* Media Preview Area */}
@@ -34,7 +64,7 @@ const ProjectCard = ({ project }: { project: Project }) => {
                                                 {media.type === 'image' ? (
                                                     <img
                                                         src={media.url}
-                                                        alt={`${project.name} ${index + 1}`}
+                                                        alt={`${getLocalized(project.name)} ${index + 1}`}
                                                         className="w-full h-full object-cover"
                                                     />
                                                 ) : (
@@ -54,7 +84,7 @@ const ProjectCard = ({ project }: { project: Project }) => {
                         firstMedia!.type === 'image' ? (
                             <img
                                 src={firstMedia!.url}
-                                alt={project.name}
+                                alt={getLocalized(project.name)}
                                 className="w-full h-full object-cover"
                             />
                         ) : (
@@ -68,9 +98,8 @@ const ProjectCard = ({ project }: { project: Project }) => {
                 /* Original Icon Header */
                 <div className="px-4 pt-6 pb-2">
                     <div className="flex items-center gap-2">
-
                         <h3 className="text-lg font-semibold group-hover:text-primary transition-smooth break-words">
-                            {project.name}
+                            {getLocalized(project.name)}
                         </h3>
                     </div>
                 </div>
@@ -79,12 +108,12 @@ const ProjectCard = ({ project }: { project: Project }) => {
             <div className="p-4 flex-1 flex flex-col">
                 {hasMedia && (
                     <h3 className="text-lg font-semibold mb-2 group-hover:text-primary transition-smooth">
-                        {project.name}
+                        {getLocalized(project.name)}
                     </h3>
                 )}
 
                 <p className="text-sm text-muted-foreground leading-relaxed mb-4 flex-1">
-                    {project.shortDescription || t(`projects.items.${project.id}.description`)}
+                    {getLocalized(project.shortDescription) || t(`projects.items.${project.id}.description`)}
                 </p>
 
                 <div className="flex flex-wrap gap-2 mb-4">
@@ -99,34 +128,41 @@ const ProjectCard = ({ project }: { project: Project }) => {
                 </div>
 
                 <div className="flex flex-wrap gap-2 mt-auto pt-4 border-t border-subtle">
-                    {project.links.github && (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                window.open(project.links.github, '_blank', 'noopener,noreferrer');
-                            }}
-                            className="flex-1 min-w-0 text-xs"
-                        >
-                            <Github className="w-3 h-3 mr-1.5" />
-                            {t('common.code')}
-                        </Button>
+                    {/* Render legacy links if present and buttons are empty */}
+                    {(!project.buttons || project.buttons.length === 0) && project.links && (
+                        <>
+                            {project.links.github && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        window.open(project.links!.github, '_blank', 'noopener,noreferrer');
+                                    }}
+                                    className="flex-1 min-w-0 text-xs"
+                                >
+                                    <Github className="w-3 h-3 mr-1.5" />
+                                    {t('common.code')}
+                                </Button>
+                            )}
+                            {(project.links.demo || project.links.docs) && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        window.open(project.links!.docs || project.links!.demo, '_blank', 'noopener,noreferrer');
+                                    }}
+                                    className="flex-1 min-w-0 text-xs"
+                                >
+                                    <ExternalLink className="w-3 h-3 mr-1.5" />
+                                    {project.links.docs ? t('common.docs') : t('common.demo')}
+                                </Button>
+                            )}
+                        </>
                     )}
-                    {(project.links.demo || project.links.docs) && (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                window.open(project.links.docs || project.links.demo, '_blank', 'noopener,noreferrer');
-                            }}
-                            className="flex-1 min-w-0 text-xs"
-                        >
-                            <ExternalLink className="w-3 h-3 mr-1.5" />
-                            {project.links.docs ? t('common.docs') : t('common.demo')}
-                        </Button>
-                    )}
+
+                    {/* Render dynamic buttons */}
                     {project.buttons?.map((btn, i) => {
                         const iconMap = {
                             github: Github,
@@ -152,7 +188,7 @@ const ProjectCard = ({ project }: { project: Project }) => {
                                 className="flex-1 min-w-0 text-xs"
                             >
                                 <Icon className="w-3 h-3 mr-1.5" />
-                                {t(btn.labelKey)}
+                                {getBtnLabel(btn)}
                             </Button>
                         );
                     })}

@@ -153,7 +153,18 @@
       "labelRu": "Label (RU)",
       "icon": "Icon",
       "previewTitle": "Live Preview",
-      "previewDesc": "This is how the card will look in the gallery. Hover over it to see interactions."
+      "previewDesc": "This is how the card will look in the gallery. Hover over it to see interactions.",
+      "localizedContent": "Localized Content",
+      "ruPreview": "RU Preview 🇷🇺",
+      "enPreview": "EN Preview 🇺🇸",
+      "english": "English",
+      "russian": "Russian",
+      "liveCard": "Live Card",
+      "namePlaceholderEn": "Project name in English",
+      "namePlaceholderRu": "Project name in Russian",
+      "descPlaceholderEn": "Describe the project in English...",
+      "descPlaceholderRu": "Describe the project in Russian...",
+      "videoPlaceholder": "https://youtube.com/watch?v=..."
     }
   }
 }

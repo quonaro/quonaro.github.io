@@ -26,7 +26,7 @@ export interface Project {
         en: string;
         ru: string;
     };
-    links: ProjectLinks;
+    links?: ProjectLinks;
     buttons?: ProjectButton[];
     shortDescription: {
         en: string;

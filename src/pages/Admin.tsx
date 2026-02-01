@@ -11,12 +11,27 @@ import { toast } from 'sonner';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const AdminPage = () => {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [projects, setProjects] = useState<Project[]>([]);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingProject, setEditingProject] = useState<Project | undefined>(undefined);
+
+    const lang = i18n.language as 'en' | 'ru';
+
+    const getLocalized = (field: any) => {
+        if (!field) return '';
+        let obj = field;
+        if (typeof field === 'string' && field.trim().startsWith('{')) {
+            try { obj = JSON.parse(field); } catch (e) { return field; }
+        }
+        if (typeof obj === 'object' && obj !== null) {
+            const currentLang = (i18n.language || 'en').split('-')[0];
+            return obj[currentLang] || obj['en'] || obj['ru'] || '';
+        }
+        return field;
+    };
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -58,7 +73,7 @@ const AdminPage = () => {
     const handleCreate = async (data: Project) => {
         try {
             await createProject(data);
-            toast.success(t('admin.form.successCreated', 'Project created'));
+            toast.success(t('admin.form.successCreated'));
             setIsFormOpen(false);
             loadProjects();
         } catch (error: any) {
@@ -70,7 +85,7 @@ const AdminPage = () => {
         try {
             const { id, ...updates } = data;
             await updateProject(id, updates);
-            toast.success(t('admin.form.successUpdated', 'Project updated'));
+            toast.success(t('admin.form.successUpdated'));
             setIsFormOpen(false);
             setEditingProject(undefined);
             loadProjects();
@@ -82,7 +97,7 @@ const AdminPage = () => {
     const handleDelete = async (id: string) => {
         try {
             await deleteProject(id);
-            toast.success(t('admin.form.successDeleted', 'Project deleted'));
+            toast.success(t('admin.form.successDeleted'));
             loadProjects();
         } catch (error: any) {
             toast.error(error.message);
@@ -135,7 +150,7 @@ const AdminPage = () => {
             <main className="container mx-auto px-4 py-8">
                 <div className="flex justify-between items-center mb-8">
                     <h2 className="text-2xl font-bold">{t('admin.dashboard.yourProjects')}</h2>
-                    <Button onClick={openCreateForm}>
+                    <Button onClick={openCreateForm} className="rounded-full px-6">
                         <Plus className="w-4 h-4 mr-2" />
                         {t('admin.dashboard.newProject')}
                     </Button>
@@ -143,40 +158,48 @@ const AdminPage = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {projects.map((project) => (
-                        <div key={project.id} className="group bg-surface border border-subtle rounded-xl overflow-hidden hover:border-primary/50 transition-colors">
+                        <div key={project.id} className="group bg-surface border border-subtle rounded-2xl overflow-hidden hover:border-primary/50 transition-all hover:shadow-xl hover:shadow-primary/5">
                             <div className="aspect-video bg-muted relative">
                                 {project.media && project.media.length > 0 ? (
-                                    <img src={project.media[0].url} alt={project.name} className="w-full h-full object-cover" />
+                                    <img src={project.media[0].url} alt={getLocalized(project.name)} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                                 ) : (
                                     <div className="flex items-center justify-center h-full text-muted-foreground">{t('admin.dashboard.noMedia')}</div>
                                 )}
                             </div>
-                            <div className="p-4">
+                            <div className="p-5">
                                 <h3 className="text-lg font-bold mb-1">
-                                    {typeof project.name === 'object' ? (project.name[i18n.language as 'en' | 'ru'] || project.name.en) : project.name}
+                                    {getLocalized(project.name)}
                                 </h3>
-                                <p className="text-sm text-muted-foreground line-clamp-2" title={typeof project.shortDescription === 'object' ? project.shortDescription.en : project.shortDescription}>
-                                    {typeof project.shortDescription === 'object' ? (project.shortDescription[i18n.language as 'en' | 'ru'] || project.shortDescription.en) : project.shortDescription}
+                                <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px]" title={getLocalized(project.shortDescription)}>
+                                    {getLocalized(project.shortDescription)}
                                 </p>
 
-                                <div className="mt-4 flex justify-between items-center">
+                                <div className="mt-6 flex justify-between items-center">
                                     <div className="flex gap-2">
-                                        <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => window.open(project.links.demo || project.links.github, '_blank')}>
-                                            <ExternalLink className="w-4 h-4" />
-                                        </Button>
+                                        {(project.buttons && project.buttons.length > 0) && (
+                                            <Button
+                                                size="icon"
+                                                variant="secondary"
+                                                className="h-9 w-9 rounded-full"
+                                                onClick={() => window.open(project.buttons![0].url, '_blank')}
+                                                title="View"
+                                            >
+                                                <ExternalLink className="w-4 h-4" />
+                                            </Button>
+                                        )}
                                     </div>
                                     <div className="flex gap-2">
-                                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => openEditForm(project)} title={t('admin.dashboard.edit')}>
+                                        <Button size="icon" variant="outline" className="h-9 w-9 rounded-full" onClick={() => openEditForm(project)} title={t('admin.dashboard.edit')}>
                                             <Pencil className="w-4 h-4" />
                                         </Button>
 
                                         <AlertDialog>
                                             <AlertDialogTrigger asChild>
-                                                <Button size="icon" variant="destructive" className="h-8 w-8" title={t('admin.dashboard.delete')}>
+                                                <Button size="icon" variant="destructive" className="h-9 w-9 rounded-full" title={t('admin.dashboard.delete')}>
                                                     <Trash2 className="w-4 h-4" />
                                                 </Button>
                                             </AlertDialogTrigger>
-                                            <AlertDialogContent>
+                                            <AlertDialogContent className="rounded-2xl">
                                                 <AlertDialogHeader>
                                                     <AlertDialogTitle>{t('admin.dashboard.confirmDeleteTitle')}</AlertDialogTitle>
                                                     <AlertDialogDescription>
@@ -184,8 +207,8 @@ const AdminPage = () => {
                                                     </AlertDialogDescription>
                                                 </AlertDialogHeader>
                                                 <AlertDialogFooter>
-                                                    <AlertDialogCancel>{t('admin.dashboard.cancel')}</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => handleDelete(project.id)}>{t('admin.dashboard.delete')}</AlertDialogAction>
+                                                    <AlertDialogCancel className="rounded-full">{t('admin.dashboard.cancel')}</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleDelete(project.id)} className="rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90">{t('admin.dashboard.delete')}</AlertDialogAction>
                                                 </AlertDialogFooter>
                                             </AlertDialogContent>
                                         </AlertDialog>

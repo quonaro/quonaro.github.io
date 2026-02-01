@@ -8,11 +8,10 @@ const ProjectGallery = () => {
     const { t } = useTranslation();
     const { projects } = useProjects();
 
-    // We only want projects that have media for the gallery
-    // Reducing to 4 to make them wider initially
-    const galleryProjects = projects.filter(p => p.media && p.media.length > 0).slice(0, 4);
+    // Show top 4 projects (with or without media)
+    const galleryProjects = projects.slice(0, 4);
 
-    if (galleryProjects.length === 0) return null;
+    if (projects.length === 0) return null;
 
     return (
         <section className="w-full bg-background py-8 overflow-hidden">
