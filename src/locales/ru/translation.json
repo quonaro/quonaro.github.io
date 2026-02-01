@@ -1,7 +1,7 @@
 {
   "navigation": {
     "skills": "Навыки",
-    "services": "Услуги", 
+    "services": "Услуги",
     "contact": "Контакты",
     "projects": "Проекты"
   },
@@ -68,6 +68,7 @@
   "projects": {
     "title": "Проекты",
     "subtitle": "Мои работы и проекты",
+    "view_all": "Все проекты",
     "items": {
       "specula": {
         "name": "Specula",
@@ -95,6 +96,64 @@
     "demo": "Демо",
     "code": "Код",
     "docs": "Документация",
+    "download": "Скачать",
     "technologies": "Технологии"
+  },
+  "admin": {
+    "login": {
+      "title": "Вход в Админку",
+      "subtitle": "Авторизуйтесь для управления портфолио",
+      "email": "Email",
+      "password": "Пароль",
+      "submit": "Войти",
+      "loading": "Входим...",
+      "success": "С возвращением!"
+    },
+    "dashboard": {
+      "title": "Управление Проектами",
+      "viewSite": "На Сайт",
+      "signOut": "Выйти",
+      "yourProjects": "Ваши Проекты",
+      "newProject": "Новый Проект",
+      "noMedia": "Нет Медиа",
+      "edit": "Редактировать",
+      "delete": "Удалить",
+      "confirmDeleteTitle": "Вы уверены?",
+      "confirmDeleteDesc": "Это действие необратимо удалит проект.",
+      "cancel": "Отмена",
+      "errorLoad": "Ошибка загрузки проектов"
+    },
+    "form": {
+      "newTitle": "Новый Проект",
+      "editTitle": "Редактировать Проект",
+      "id": "ID (Уникальный - для i18n ключей)",
+      "name": "Название",
+      "shortDesc": "Краткое Описание (или ключ i18n)",
+      "technologies": "Технологии (через запятую)",
+      "demoLink": "Ссылка на Демо",
+      "githubLink": "Ссылка на GitHub",
+      "docsLink": "Ссылка на Документацию",
+      "media": "Медиа",
+      "uploadImages": "Загрузить Изображения",
+      "videoUrl": "Ссылка на Видео (YouTube)",
+      "add": "Добавить",
+      "save": "Сохранить",
+      "saving": "Сохранение...",
+      "cancel": "Отмена",
+      "successCreated": "Проект создан",
+      "successUpdated": "Проект обновлен",
+      "successDeleted": "Проект удален",
+      "errorUpload": "Ошибка загрузки изображений",
+      "basicInfo": "Основная Информация",
+      "buttonsCount": "Кнопки (Макс 3)",
+      "addButton": "Добавить Кнопку",
+      "buttonNumber": "Кнопка #{{index}}",
+      "url": "URL",
+      "labelEn": "Текст (EN)",
+      "labelRu": "Текст (RU)",
+      "icon": "Иконка",
+      "previewTitle": "Предпросмотр",
+      "previewDesc": "Так карточка будет выглядеть в галерее. Наведите, чтобы увидеть анимации."
+    }
   }
 }

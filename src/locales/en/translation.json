@@ -1,7 +1,7 @@
 {
   "navigation": {
     "skills": "Skills",
-    "services": "Services", 
+    "services": "Services",
     "contact": "Contact",
     "projects": "Projects"
   },
@@ -68,6 +68,7 @@
   "projects": {
     "title": "Projects",
     "subtitle": "My works and projects",
+    "view_all": "View All Projects",
     "items": {
       "specula": {
         "name": "Specula",
@@ -95,6 +96,64 @@
     "demo": "Demo",
     "code": "Code",
     "docs": "Docs",
+    "download": "Download",
     "technologies": "Technologies"
+  },
+  "admin": {
+    "login": {
+      "title": "Admin Access",
+      "subtitle": "Authenticate to manage portfolio",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign In",
+      "loading": "Authenticating...",
+      "success": "Welcome back!"
+    },
+    "dashboard": {
+      "title": "Project Manager",
+      "viewSite": "View Site",
+      "signOut": "Sign Out",
+      "yourProjects": "Your Projects",
+      "newProject": "New Project",
+      "noMedia": "No Media",
+      "edit": "Edit",
+      "delete": "Delete",
+      "confirmDeleteTitle": "Are you sure?",
+      "confirmDeleteDesc": "This action cannot be undone. This will permanently delete the project.",
+      "cancel": "Cancel",
+      "errorLoad": "Failed to load projects"
+    },
+    "form": {
+      "newTitle": "New Project",
+      "editTitle": "Edit Project",
+      "id": "ID (Unique)",
+      "name": "Name",
+      "shortDesc": "Short Description",
+      "technologies": "Technologies (comma separated)",
+      "demoLink": "Demo Link",
+      "githubLink": "GitHub Link",
+      "docsLink": "Docs Link",
+      "media": "Media",
+      "uploadImages": "Upload Images",
+      "videoUrl": "Video URL",
+      "add": "Add",
+      "save": "Save Project",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "successCreated": "Project created",
+      "successUpdated": "Project updated",
+      "successDeleted": "Project deleted",
+      "errorUpload": "Failed to upload images",
+      "basicInfo": "Basic Info",
+      "buttonsCount": "Buttons (Max 3)",
+      "addButton": "Add Button",
+      "buttonNumber": "Button #{{index}}",
+      "url": "URL",
+      "labelEn": "Label (EN)",
+      "labelRu": "Label (RU)",
+      "icon": "Icon",
+      "previewTitle": "Live Preview",
+      "previewDesc": "This is how the card will look in the gallery. Hover over it to see interactions."
+    }
   }
 }

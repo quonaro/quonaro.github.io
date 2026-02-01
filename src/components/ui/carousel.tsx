@@ -136,7 +136,7 @@ const CarouselContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HT
     const { carouselRef, orientation } = useCarousel();
 
     return (
-      <div ref={carouselRef} className="overflow-hidden">
+      <div ref={carouselRef} className="overflow-hidden h-full">
         <div
           ref={ref}
           className={cn("flex", orientation === "horizontal" ? "-ml-4" : "-mt-4 flex-col", className)}
@@ -182,7 +182,10 @@ const CarouselPrevious = React.forwardRef<HTMLButtonElement, React.ComponentProp
           className,
         )}
         disabled={!canScrollPrev}
-        onClick={scrollPrev}
+        onClick={(e) => {
+          scrollPrev()
+          props.onClick?.(e)
+        }}
         {...props}
       >
         <ArrowLeft className="h-4 w-4" />
@@ -210,7 +213,10 @@ const CarouselNext = React.forwardRef<HTMLButtonElement, React.ComponentProps<ty
           className,
         )}
         disabled={!canScrollNext}
-        onClick={scrollNext}
+        onClick={(e) => {
+          scrollNext()
+          props.onClick?.(e)
+        }}
         {...props}
       >
         <ArrowRight className="h-4 w-4" />

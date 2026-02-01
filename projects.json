@@ -1,0 +1,124 @@
+[
+    {
+        "id": "specula",
+        "name": "Specula",
+        "links": {
+            "demo": "https://quonaro.github.io/Specula",
+            "github": "https://github.com/quonaro/Specula"
+        },
+        "shortDescription": "Minimalist Todo List",
+        "technologies": [
+            "Vue.js 3"
+        ],
+        "media": [
+            {
+                "type": "image",
+                "url": "https://placehold.co/600x400/1a1a1a/ffffff?text=Specula+1"
+            },
+            {
+                "type": "image",
+                "url": "https://placehold.co/600x400/2a2a2a/ffffff?text=Specula+2"
+            }
+        ]
+    },
+    {
+        "id": "nest",
+        "name": "Nest",
+        "links": {
+            "demo": "https://github.com/quonaro/Nest",
+            "github": "https://github.com/quonaro/Nest",
+            "docs": "https://quonaro.github.io/Nest"
+        },
+        "buttons": [
+            {
+                "labelKey": "common.download",
+                "url": "https://crates.io/crates/nest-task",
+                "icon": "download"
+            }
+        ],
+        "shortDescription": "P2P Task Management System",
+        "technologies": [
+            "Rust"
+        ],
+        "media": [
+            {
+                "type": "image",
+                "url": "https://placehold.co/600x400/1a1a1a/ffffff?text=Nest+1"
+            },
+            {
+                "type": "image",
+                "url": "https://placehold.co/600x400/2a2a2a/ffffff?text=Nest+2"
+            },
+            {
+                "type": "image",
+                "url": "https://placehold.co/600x400/3a3a3a/ffffff?text=Nest+3"
+            }
+        ]
+    },
+    {
+        "id": "safewheel",
+        "name": "SafeWheel",
+        "links": {
+            "demo": "https://github.com/quonaro/safe-wheel",
+            "github": "https://github.com/quonaro/safe-wheel"
+        },
+        "shortDescription": "Secure Password Manager",
+        "technologies": [
+            "Electron",
+            "Vue.js 3",
+            "SQLite"
+        ],
+        "media": [
+            {
+                "type": "image",
+                "url": "https://placehold.co/600x400/1a1a1a/ffffff?text=SafeWheel+1"
+            },
+            {
+                "type": "image",
+                "url": "https://placehold.co/600x400/2a2a2a/ffffff?text=SafeWheel+2"
+            },
+            {
+                "type": "image",
+                "url": "https://placehold.co/600x400/3a3a3a/ffffff?text=SafeWheel+3"
+            }
+        ]
+    },
+    {
+        "id": "fias",
+        "name": "FIAS Public API",
+        "links": {
+            "demo": "https://github.com/quonaro/fias-public-api",
+            "github": "https://github.com/quonaro/fias-public-api"
+        },
+        "shortDescription": "Public API for FIAS",
+        "technologies": [
+            "Python"
+        ],
+        "media": [
+            {
+                "type": "image",
+                "url": "/images/projects/demo.png"
+            }
+        ]
+    },
+    {
+        "id": "keyschool",
+        "name": "Key School Landing",
+        "links": {
+            "demo": "https://quonaro.github.io/kwork-keyschool",
+            "github": "https://github.com/quonaro/kwork-keyschool"
+        },
+        "shortDescription": "Educational Platform",
+        "technologies": [
+            "Vue.js 3",
+            "Vite",
+            "CSS3"
+        ],
+        "media": [
+            {
+                "type": "image",
+                "url": "/images/projects/demo.png"
+            }
+        ]
+    }
+]
