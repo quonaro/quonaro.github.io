@@ -8,10 +8,6 @@ const LanguageSwitcher = () => {
   const toggleLanguage = () => {
     const newLang = i18n.language === 'ru' ? 'en' : 'ru';
     i18n.changeLanguage(newLang);
-    // Перезагружаем страницу после смены языка
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
   };
 
   return (
