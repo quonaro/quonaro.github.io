@@ -24,6 +24,15 @@ interface ProjectFormProps {
 
 const AVAILABLE_ICONS = ['github', 'external', 'docs', 'download', 'play', 'youtube', 'figma', 'book', 'monitor'];
 
+const GRADIENT_PRESETS = [
+    'bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500',
+    'bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-700',
+    'bg-gradient-to-br from-orange-500 via-red-600 to-rose-700',
+    'bg-gradient-to-tr from-emerald-500 via-teal-600 to-cyan-700',
+    'bg-gradient-to-br from-zinc-900 via-slate-800 to-zinc-900',
+    'bg-gradient-to-tr from-violet-600 via-indigo-700 to-blue-800',
+];
+
 export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProps) => {
     const { t } = useTranslation();
     const [uploading, setUploading] = useState(false);
@@ -34,6 +43,55 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
     const [isResizing, setIsResizing] = useState(false);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0, pos: { x: 0, y: 0 }, scale: 1 });
     const [imageDimensions, setImageDimensions] = useState<{ [key: string]: { width: number, height: number, ratio: number } }>({});
+
+    // Normalization helper
+    const normalizeLocalField = (field: any) => {
+        if (!field) return { en: '', ru: '' };
+        let data = field;
+        if (typeof field === 'string' && field.trim().startsWith('{')) {
+            try {
+                data = JSON.parse(field);
+            } catch (e) {
+                return { en: field, ru: field };
+            }
+        }
+        if (typeof data === 'string') return { en: data, ru: data };
+        if (typeof data === 'object' && data !== null) {
+            return {
+                en: data.en || '',
+                ru: data.ru || ''
+            };
+        }
+        return { en: '', ru: '' };
+    };
+
+    const { register, control, handleSubmit, setValue, watch, formState: { isSubmitting } } = useForm<Project>({
+        defaultValues: initialData ? {
+            ...initialData,
+            name: normalizeLocalField(initialData.name),
+            shortDescription: normalizeLocalField(initialData.shortDescription)
+        } : {
+            id: '',
+            name: { en: '', ru: '' },
+            shortDescription: { en: '', ru: '' },
+            technologies: [],
+            media: [],
+            buttons: []
+        }
+    });
+
+    const formValues = watch();
+    const coverType = watch('cover_config.type') || (formValues.cover_image ? 'image' : 'generated');
+
+    const { fields: mediaFields, append: appendMedia, remove: removeMedia } = useFieldArray({
+        control,
+        name: "media"
+    });
+
+    const { fields: buttonFields, append: appendButton, remove: removeButton } = useFieldArray({
+        control,
+        name: "buttons"
+    });
 
     // Sync active slide index
     useEffect(() => {
@@ -87,8 +145,8 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                 setValue('media', updatedMedia);
             }
         } else if (isResizing) {
-            const deltaY = dragStart.y - e.clientY; // Up = bigger
-            const deltaX = e.clientX - dragStart.x; // Right = bigger
+            const deltaY = dragStart.y - e.clientY;
+            const deltaX = e.clientX - dragStart.x;
             const delta = (Math.abs(deltaY) > Math.abs(deltaX) ? deltaY : deltaX) * 0.01;
 
             const newScale = Math.max(0.1, Math.min(5, dragStart.scale + delta));
@@ -137,7 +195,7 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
         if (!media || !imageDimensions[media.url]) return { width: '100%', height: '100%' };
 
         const dim = imageDimensions[media.url];
-        const containerWidth = 800; // Expected container width
+        const containerWidth = 800;
         const containerHeight = 500;
         const containerRatio = containerWidth / containerHeight;
 
@@ -160,55 +218,6 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
         };
     };
 
-    // Normalization helper for legacy data or stringified JSON from DB
-    const normalizeLocalField = (field: any) => {
-        if (!field) return { en: '', ru: '' };
-        let data = field;
-        if (typeof field === 'string' && field.trim().startsWith('{')) {
-            try {
-                data = JSON.parse(field);
-            } catch (e) {
-                return { en: field, ru: field };
-            }
-        }
-
-        if (typeof data === 'string') return { en: data, ru: data };
-        if (typeof data === 'object' && data !== null) {
-            return {
-                en: data.en || '',
-                ru: data.ru || ''
-            };
-        }
-        return { en: '', ru: '' };
-    };
-
-    const { register, control, handleSubmit, setValue, watch, formState: { isSubmitting } } = useForm<Project>({
-        defaultValues: initialData ? {
-            ...initialData,
-            name: normalizeLocalField(initialData.name),
-            shortDescription: normalizeLocalField(initialData.shortDescription)
-        } : {
-            id: '',
-            name: { en: '', ru: '' },
-            shortDescription: { en: '', ru: '' },
-            technologies: [],
-            media: [],
-            buttons: []
-        }
-    });
-
-    const formValues = watch();
-
-    const { fields: mediaFields, append: appendMedia, remove: removeMedia } = useFieldArray({
-        control,
-        name: "media"
-    });
-
-    const { fields: buttonFields, append: appendButton, remove: removeButton } = useFieldArray({
-        control,
-        name: "buttons"
-    });
-
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isCover: boolean = false) => {
         const files = e.target.files;
         if (!files) return;
@@ -223,7 +232,7 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                 if (isCover) {
                     setValue('cover_image', url);
                     toast.success(t('admin.form.successUpdated'));
-                    break; // Only one cover image
+                    break;
                 } else {
                     appendMedia({ type: 'image', url });
                     toast.success(t('admin.form.successCreated'));
@@ -291,41 +300,103 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                     </div>
 
                     {/* Cover Image Sub-section */}
-                    <div className="space-y-3">
-                        <Label className="text-muted-foreground flex items-center gap-2">
-                            <Layout className="w-4 h-4" /> {t('admin.form.coverImage')}
-                        </Label>
-                        <div className="flex gap-4 items-start">
-                            {formValues.cover_image ? (
-                                <div className="relative w-40 aspect-video bg-muted/40 rounded-xl overflow-hidden border border-subtle shadow-inner group">
-                                    <img src={formValues.cover_image} alt="Cover" className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <Button
-                                            type="button"
-                                            size="icon"
-                                            variant="destructive"
-                                            className="h-8 w-8 rounded-full"
-                                            onClick={() => setValue('cover_image', '')}
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <label className="flex flex-col items-center justify-center w-40 aspect-video border-2 border-dashed border-subtle rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
-                                    {uploading ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : <Upload className="w-6 h-6 text-muted-foreground group-hover:text-primary" />}
-                                    <span className="text-[10px] mt-2 font-medium text-muted-foreground group-hover:text-primary uppercase tracking-wider text-center px-2">
-                                        {t('admin.form.uploadCover')}
-                                    </span>
-                                    <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, true)} className="hidden" />
-                                </label>
-                            )}
-                            <div className="flex-1 space-y-2">
-                                <p className="text-[10px] text-muted-foreground italic">
-                                    {t('admin.form.previewDesc')}
-                                </p>
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <Label className="text-muted-foreground flex items-center gap-2">
+                                <Layout className="w-4 h-4" /> {t('admin.form.coverImage')}
+                            </Label>
+                            <div className="flex bg-muted/20 p-1 rounded-xl border border-subtle">
+                                <button
+                                    type="button"
+                                    onClick={() => setValue('cover_config.type', 'image')}
+                                    className={cn(
+                                        "px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all",
+                                        coverType === 'image' ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:text-foreground"
+                                    )}
+                                >
+                                    Image
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setValue('cover_config.type', 'generated')}
+                                    className={cn(
+                                        "px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all",
+                                        coverType === 'generated' ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:text-foreground"
+                                    )}
+                                >
+                                    Dynamic
+                                </button>
                             </div>
                         </div>
+
+                        {coverType === 'image' ? (
+                            <div className="flex gap-4 items-start animate-in fade-in slide-in-from-left-2 duration-300">
+                                {formValues.cover_image ? (
+                                    <div className="relative w-48 aspect-video bg-muted/40 rounded-xl overflow-hidden border border-subtle shadow-inner group">
+                                        <img src={formValues.cover_image} alt="Cover" className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <Button
+                                                type="button"
+                                                size="icon"
+                                                variant="destructive"
+                                                className="h-8 w-8 rounded-full"
+                                                onClick={() => setValue('cover_image', '')}
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <label className="flex flex-col items-center justify-center w-48 aspect-video border-2 border-dashed border-subtle rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
+                                        {uploading ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : <Upload className="w-6 h-6 text-muted-foreground group-hover:text-primary" />}
+                                        <span className="text-[10px] mt-2 font-medium text-muted-foreground group-hover:text-primary uppercase tracking-wider text-center px-2">
+                                            {t('admin.form.uploadCover')}
+                                        </span>
+                                        <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, true)} className="hidden" />
+                                    </label>
+                                )}
+                                <div className="flex-1 space-y-2">
+                                    <p className="text-[10px] text-muted-foreground italic">
+                                        {t('admin.form.previewDesc')}
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-4 animate-in fade-in slide-in-from-right-2 duration-300 bg-muted/10 p-4 rounded-2xl border border-subtle/50">
+                                <div className="grid grid-cols-6 gap-2">
+                                    {GRADIENT_PRESETS.map((grad, i) => (
+                                        <button
+                                            key={i}
+                                            type="button"
+                                            onClick={() => setValue('cover_config.gradient', grad)}
+                                            className={cn(
+                                                "aspect-square rounded-lg border-2 transition-all hover:scale-105 active:scale-95",
+                                                grad,
+                                                formValues.cover_config?.gradient === grad ? "border-white shadow-[0_0_10px_rgba(255,255,255,0.3)] scale-110" : "border-transparent"
+                                            )}
+                                        />
+                                    ))}
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div className="space-y-1.5">
+                                        <Label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold ml-1">{t('admin.form.coverTextEn')}</Label>
+                                        <Input
+                                            {...register('cover_config.text.en')}
+                                            placeholder={t('admin.form.emptyForProjectName')}
+                                            className="h-9 bg-background/50 border-subtle rounded-xl text-xs"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <Label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold ml-1">{t('admin.form.coverTextRu')}</Label>
+                                        <Input
+                                            {...register('cover_config.text.ru')}
+                                            placeholder={t('admin.form.emptyForProjectName')}
+                                            className="h-9 bg-background/50 border-subtle rounded-xl text-xs"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="h-px bg-subtle/50 my-6" />
@@ -366,7 +437,7 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                             ))}
                             <label className="flex flex-col items-center justify-center aspect-video border-2 border-dashed border-subtle rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
                                 {uploading ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : <Upload className="w-6 h-6 text-muted-foreground group-hover:text-primary" />}
-                                <span className="text-[10px] mt-2 font-medium text-muted-foreground group-hover:text-primary uppercase tracking-wider">{t('admin.form.uploadImages')}</span>
+                                <span className="text-[10px] mt-2 font-medium text-muted-foreground group-hover:text-primary uppercase tracking-wider text-center">{t('admin.form.uploadImages')}</span>
                                 <input type="file" multiple accept="image/*" onChange={(e) => handleFileUpload(e, false)} className="hidden" />
                             </label>
                         </div>

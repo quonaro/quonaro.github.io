@@ -23,6 +23,12 @@ export interface ProjectButton {
     icon?: 'github' | 'external' | 'docs' | 'download' | 'play' | 'youtube' | 'figma' | 'book' | 'monitor';
 }
 
+export interface ProjectCoverConfig {
+    type: 'image' | 'generated';
+    gradient?: string;
+    text?: { en: string; ru: string };
+}
+
 export interface Project {
     id: string;
     name: {
@@ -38,5 +44,6 @@ export interface Project {
     technologies: string[];
     media?: ProjectMedia[];
     cover_image?: string;
+    cover_config?: ProjectCoverConfig;
     is_in_gallery?: boolean;
 }

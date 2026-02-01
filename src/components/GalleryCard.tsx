@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ProjectForm } from './admin/ProjectForm';
+import { ProjectCover } from './ProjectCover';
 import { updateProject, deleteProject } from '@/services/projects';
 import { toast } from 'sonner';
 
@@ -118,23 +119,7 @@ export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false, f
                     "absolute inset-0 transition-opacity duration-700 opacity-100 group-hover/card:opacity-0",
                     isHovered && "opacity-0"
                 )}>
-                    {project.cover_image ? (
-                        <img
-                            src={project.cover_image}
-                            alt={getLocal(project.name)}
-                            className="w-full h-full object-cover"
-                        />
-                    ) : project.media && project.media.length > 0 ? (
-                        <img
-                            src={project.media[0].url}
-                            alt={getLocal(project.name)}
-                            className="w-full h-full object-cover"
-                        />
-                    ) : (
-                        <div className="w-full h-full bg-neutral-900 flex items-center justify-center text-neutral-700">
-                            {t('admin.dashboard.noMedia')}
-                        </div>
-                    )}
+                    <ProjectCover project={project} />
                 </div>
 
                 <div className={cn(
@@ -205,11 +190,9 @@ export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false, f
                                 transformOrigin: 'center'
                             }}
                         />
-                    ) : !project.cover_image ? (
-                        <div className="w-full h-full bg-neutral-900 flex items-center justify-center text-neutral-700">
-                            {t('admin.dashboard.noMedia')}
-                        </div>
-                    ) : null}
+                    ) : (
+                        <ProjectCover project={project} />
+                    )}
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
             </div>
