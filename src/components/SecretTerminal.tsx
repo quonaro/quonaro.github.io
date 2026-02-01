@@ -16,6 +16,8 @@ export const SecretTerminal = ({ isOpen, onClose }: SecretTerminalProps) => {
     const [input, setInput] = useState('');
     const [email, setEmail] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
     const navigate = useNavigate();
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -27,22 +29,23 @@ export const SecretTerminal = ({ isOpen, onClose }: SecretTerminalProps) => {
 
     const checkSession = async () => {
         const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-            setStep('SUCCESS');
-            setTimeout(() => {
-                navigate('/admin');
-                onClose();
-            }, 500);
-            return true;
-        }
-        return false;
+        return !!session;
     };
 
-    const resetTerminal = () => {
+    const resetTerminal = async () => {
+        const isAuthed = await checkSession();
+        setIsAuthenticated(isAuthed);
         setStep('COMMAND');
         setInput('');
         setEmail('');
         setErrorMessage('');
+
+        if (isAuthed) {
+            setTerminalOutput(['user_is_authenticated']);
+        } else {
+            setTerminalOutput([]);
+        }
+
         setTimeout(() => inputRef.current?.focus(), 100);
     };
 
@@ -59,13 +62,13 @@ export const SecretTerminal = ({ isOpen, onClose }: SecretTerminalProps) => {
 
             setStep('SUCCESS');
             setTimeout(() => {
-                navigate('/admin');
+                navigate('/');
                 onClose();
             }, 1000);
         } catch (err: any) {
             setErrorMessage(err.message || 'Login failed');
             setStep('ERROR');
-            setInput(''); // Clear immediately to hide even hidden dots if needed
+            setInput('');
             setTimeout(() => {
                 setStep('LOGIN');
                 setErrorMessage('');
@@ -79,12 +82,31 @@ export const SecretTerminal = ({ isOpen, onClose }: SecretTerminalProps) => {
         const value = input.trim();
 
         if (step === 'COMMAND') {
+            if (value === '') return;
+
             if (value.toLowerCase() === 'admin') {
-                const isAuthed = await checkSession();
-                if (!isAuthed) {
+                if (isAuthenticated) {
+                    setTerminalOutput(prev => [...prev, '$ admin', 'already authenticated']);
+                    setInput('');
+                } else {
                     setStep('LOGIN');
                     setInput('');
                 }
+            } else if (value.toLowerCase() === 'logout') {
+                if (isAuthenticated) {
+                    await supabase.auth.signOut();
+                    setIsAuthenticated(false);
+                    setTerminalOutput(prev => [...prev, '$ logout', 'user logged out']);
+                    setInput('');
+                } else {
+                    setTerminalOutput(prev => [...prev, '$ logout', 'not logged in']);
+                    setInput('');
+                }
+            } else if (value.toLowerCase() === 'clear') {
+                setTerminalOutput([]);
+                setInput('');
+            } else if (value.toLowerCase() === 'exit') {
+                onClose();
             } else {
                 setStep('ERROR');
                 setErrorMessage(`command not found: ${value}`);
@@ -144,9 +166,12 @@ export const SecretTerminal = ({ isOpen, onClose }: SecretTerminalProps) => {
 
                     {/* Terminal Body */}
                     <div className="p-6 space-y-4">
-                        <div className="text-secondary/80 text-sm">
+                        <div className="text-secondary/80 text-sm space-y-1">
                             <p>Last login: {new Date().toUTCString()} on ttys001</p>
-                            <p className="mt-1">Welcome to quonaro-sh v1.0.4</p>
+                            <p>Welcome to quonaro-sh v1.0.4</p>
+                            {terminalOutput.map((line, i) => (
+                                <p key={i} className="break-all">{line}</p>
+                            ))}
                         </div>
 
                         <div className="min-h-[80px] flex flex-col justify-start">

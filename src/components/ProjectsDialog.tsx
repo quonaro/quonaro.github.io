@@ -1,4 +1,4 @@
-import { Github, ExternalLink, Play, FileText, Download, Youtube, Figma, Book, Monitor } from "lucide-react";
+import { Github, ExternalLink, Play, FileText, Download, Youtube, Figma, Book, Monitor, Plus, Pencil, Trash2 } from "lucide-react";
 import Fade from 'embla-carousel-fade';
 import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
@@ -7,9 +7,18 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useProjects } from "@/hooks/useProjects";
 import { Project } from "@/types/project";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { ProjectForm } from "./admin/ProjectForm";
+import { createProject, updateProject, deleteProject } from "@/services/projects";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { useState } from "react";
 
 const ProjectCard = ({ project }: { project: Project }) => {
     const { t, i18n } = useTranslation();
+    const { isAuthenticated } = useAuth();
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const lang = i18n.language as 'en' | 'ru';
 
     const getLocalized = (field: any) => {
@@ -44,6 +53,28 @@ const ProjectCard = ({ project }: { project: Project }) => {
         }
         if (btn.labelKey) return t(btn.labelKey);
         return typeof label === 'string' ? label : 'Link';
+    };
+
+    const handleUpdate = async (data: Project) => {
+        try {
+            const { id, ...updates } = data;
+            await updateProject(id, updates);
+            toast.success(t('admin.form.successUpdated'));
+            setIsEditDialogOpen(false);
+            window.location.reload();
+        } catch (error: any) {
+            toast.error(error.message);
+        }
+    };
+
+    const handleDelete = async () => {
+        try {
+            await deleteProject(project.id);
+            toast.success(t('admin.form.successDeleted'));
+            window.location.reload();
+        } catch (error: any) {
+            toast.error(error.message);
+        }
     };
 
     return (
@@ -193,6 +224,60 @@ const ProjectCard = ({ project }: { project: Project }) => {
                         );
                     })}
                 </div>
+
+                {/* Admin Edit Button */}
+                {isAuthenticated && (
+                    <div className="absolute top-2 right-2 z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-2">
+                        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button
+                                    size="icon"
+                                    className="h-8 w-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-primary transition-all shadow-xl"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-[95vw] w-[1400px] h-[90vh] bg-background/95 backdrop-blur-2xl border-subtle overflow-hidden flex flex-col p-0" onClick={(e) => e.stopPropagation()}>
+                                <DialogHeader className="px-8 py-6 border-b border-subtle flex-shrink-0">
+                                    <DialogTitle className="text-3xl font-black tracking-tight">{t('admin.form.editTitle')}</DialogTitle>
+                                </DialogHeader>
+                                <div className="flex-1 overflow-hidden p-8">
+                                    <ProjectForm
+                                        initialData={project}
+                                        onSubmit={handleUpdate}
+                                        onCancel={() => setIsEditDialogOpen(false)}
+                                    />
+                                </div>
+                            </DialogContent>
+                        </Dialog>
+
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button
+                                    size="icon"
+                                    variant="destructive"
+                                    className="h-8 w-8 rounded-full bg-destructive/80 backdrop-blur-md border border-destructive/20 text-white hover:bg-destructive hover:border-destructive transition-all shadow-xl"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="bg-background/95 backdrop-blur-xl border-subtle" onClick={(e) => e.stopPropagation()}>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>{t('admin.dashboard.confirmDeleteTitle')}</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        {t('admin.dashboard.confirmDeleteDesc')}
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel className="rounded-full">{t('admin.dashboard.cancel')}</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleDelete} className="rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90">{t('admin.dashboard.delete')}</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -201,26 +286,69 @@ const ProjectCard = ({ project }: { project: Project }) => {
 export const ProjectsDialog = () => {
     const { t } = useTranslation();
     const { projects } = useProjects();
+    const { isAuthenticated } = useAuth();
+    const navigate = useNavigate();
+    const [isFormOpen, setIsFormOpen] = useState(false);
+
+    const handleCreate = async (data: Project) => {
+        try {
+            await createProject(data);
+            toast.success(t('admin.form.successCreated'));
+            setIsFormOpen(false);
+            // Refreshing the page or state would be ideal, but for now we'll just close
+            window.location.reload();
+        } catch (error: any) {
+            toast.error(error.message);
+        }
+    };
 
     return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button variant="outline" className="mt-4">
-                    {t('projects.view_all', 'View All Projects')}
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-7xl h-[90vh] p-0 bg-background/95 backdrop-blur-xl border-subtle">
-                <DialogHeader className="px-6 py-4 border-b border-subtle">
-                    <DialogTitle className="text-2xl font-bold">{t('projects.title')}</DialogTitle>
-                </DialogHeader>
-                <ScrollArea className="h-[calc(90vh-80px)] px-6 py-6">
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
-                        {projects.map((project) => (
-                            <ProjectCard key={project.id} project={project} />
-                        ))}
-                    </div>
-                </ScrollArea>
-            </DialogContent>
-        </Dialog>
+        <div className="flex flex-wrap items-center justify-center gap-4 mt-4">
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button
+                        className="min-w-[160px] h-11 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 border-none"
+                    >
+                        {t('projects.view_all', 'View All Projects')}
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-7xl h-[90vh] p-0 bg-background/95 backdrop-blur-xl border-subtle">
+                    <DialogHeader className="px-6 py-4 border-b border-subtle">
+                        <DialogTitle className="text-2xl font-bold">{t('projects.title')}</DialogTitle>
+                    </DialogHeader>
+                    <ScrollArea className="h-[calc(90vh-80px)] px-6 py-6">
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
+                            {projects.map((project) => (
+                                <ProjectCard key={project.id} project={project} />
+                            ))}
+                        </div>
+                    </ScrollArea>
+                </DialogContent>
+            </Dialog>
+
+            {isAuthenticated && (
+                <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                    <DialogTrigger asChild>
+                        <Button
+                            className="min-w-[160px] h-11 bg-green-600 hover:bg-green-700 text-white border-none shadow-lg shadow-green-900/20"
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            {t('admin.dashboard.newProject', 'New Project')}
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-[95vw] w-[1400px] h-[90vh] bg-background/95 backdrop-blur-2xl border-subtle overflow-hidden flex flex-col p-0">
+                        <DialogHeader className="px-8 py-6 border-b border-subtle flex-shrink-0">
+                            <DialogTitle className="text-3xl font-black tracking-tight">{t('admin.form.newTitle')}</DialogTitle>
+                        </DialogHeader>
+                        <div className="flex-1 overflow-hidden p-8">
+                            <ProjectForm
+                                onSubmit={handleCreate}
+                                onCancel={() => setIsFormOpen(false)}
+                            />
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            )}
+        </div>
     );
 };

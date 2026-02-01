@@ -2,19 +2,28 @@ import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import Fade from 'embla-carousel-fade';
 import Autoplay from 'embla-carousel-autoplay';
-import { ExternalLink, Github, FileText, Download, Play, Youtube, Figma, Book, Monitor } from 'lucide-react';
+import { ExternalLink, Github, FileText, Download, Play, Youtube, Figma, Book, Monitor, Pencil, Trash2 } from 'lucide-react';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { Button } from '@/components/ui/button';
 import { Project } from '@/types/project';
+import { useAuth } from '@/hooks/useAuth';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ProjectForm } from './admin/ProjectForm';
+import { updateProject, deleteProject } from '@/services/projects';
+import { toast } from 'sonner';
 
 interface GalleryCardProps {
     project: Project;
     forcedLanguage?: 'en' | 'ru';
+    hideEditButton?: boolean;
 }
 
-export const GalleryCard = ({ project, forcedLanguage }: GalleryCardProps) => {
+export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false }: GalleryCardProps) => {
     const { t, i18n } = useTranslation();
+    const { isAuthenticated } = useAuth();
     const [api, setApi] = useState<CarouselApi>();
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
     const lang = forcedLanguage || (i18n.language as 'en' | 'ru');
 
@@ -58,6 +67,27 @@ export const GalleryCard = ({ project, forcedLanguage }: GalleryCardProps) => {
             return t(btn.labelKey);
         }
         return typeof label === 'string' ? label : 'Link';
+    };
+    const handleUpdate = async (data: Project) => {
+        try {
+            const { id, ...updates } = data;
+            await updateProject(id, updates);
+            toast.success(t('admin.form.successUpdated'));
+            setIsEditDialogOpen(false);
+            window.location.reload();
+        } catch (error: any) {
+            toast.error(error.message);
+        }
+    };
+
+    const handleDelete = async () => {
+        try {
+            await deleteProject(project.id);
+            toast.success(t('admin.form.successDeleted'));
+            window.location.reload();
+        } catch (error: any) {
+            toast.error(error.message);
+        }
     };
 
     return (
@@ -118,6 +148,61 @@ export const GalleryCard = ({ project, forcedLanguage }: GalleryCardProps) => {
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
             </div>
+
+            {/* Admin Edit Button */}
+            {isAuthenticated && !hideEditButton && (
+                <div className="absolute top-4 right-4 z-50 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 flex items-center gap-2">
+                    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button
+                                size="icon"
+                                variant="secondary"
+                                className="h-10 w-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-primary hover:border-primary transition-all shadow-xl"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <Pencil className="w-4 h-4" />
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-[95vw] w-[1400px] h-[90vh] bg-background/95 backdrop-blur-2xl border-subtle overflow-hidden flex flex-col p-0" onClick={(e) => e.stopPropagation()}>
+                            <DialogHeader className="px-8 py-6 border-b border-subtle flex-shrink-0">
+                                <DialogTitle className="text-3xl font-black tracking-tight">{t('admin.form.editTitle')}</DialogTitle>
+                            </DialogHeader>
+                            <div className="flex-1 overflow-hidden p-8">
+                                <ProjectForm
+                                    initialData={project}
+                                    onSubmit={handleUpdate}
+                                    onCancel={() => setIsEditDialogOpen(false)}
+                                />
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button
+                                size="icon"
+                                variant="destructive"
+                                className="h-10 w-10 rounded-full bg-destructive/80 backdrop-blur-md border border-destructive/20 text-white hover:bg-destructive hover:border-destructive transition-all shadow-xl"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-background/95 backdrop-blur-xl border-subtle" onClick={(e) => e.stopPropagation()}>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>{t('admin.dashboard.confirmDeleteTitle')}</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    {t('admin.dashboard.confirmDeleteDesc')}
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel className="rounded-full">{t('admin.dashboard.cancel')}</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete} className="rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90">{t('admin.dashboard.delete')}</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+            )}
 
             {/* Content Content */}
             <div className="absolute inset-0 p-6 pb-10 flex flex-col justify-end pointer-events-none">

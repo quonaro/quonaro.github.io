@@ -3,22 +3,15 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useTranslation, Trans } from 'react-i18next';
 import { SecretTerminal } from './SecretTerminal';
+import { useAuth } from '@/hooks/useAuth';
 
 const HeroSection = () => {
   const { t } = useTranslation();
-  const [clicks, setClicks] = useState(0);
+  const { isAuthenticated } = useAuth();
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
 
   const handleGreetingClick = () => {
-    const newCount = clicks + 1;
-    if (newCount >= 3) {
-      setIsTerminalOpen(true);
-      setClicks(0);
-    } else {
-      setClicks(newCount);
-      // Optional: reset clicks if not pressed fast enough, but 3 clicks is simple
-      setTimeout(() => setClicks(0), 2000);
-    }
+    setIsTerminalOpen(true);
   };
 
   return (
@@ -34,7 +27,9 @@ const HeroSection = () => {
           className="font-mono text-terminal text-sm mb-8 opacity-75 animate-fade-in-down cursor-pointer select-none active:scale-95 transition-transform"
           onClick={handleGreetingClick}
         >
-          <span className="text-muted-foreground">{t('hero.greeting')}</span>
+          <span className={isAuthenticated ? "text-green-500 font-bold" : "text-muted-foreground"}>
+            {isAuthenticated ? "$ admin" : t('hero.greeting')}
+          </span>
         </div>
 
         {/* Main content */}

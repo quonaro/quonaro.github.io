@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from 'react-i18next';
-import { Menu } from 'lucide-react';
+import { Menu, LogOut } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
 import {
   Sheet,
   SheetContent,
@@ -12,6 +15,8 @@ const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { t } = useTranslation();
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,6 +42,17 @@ const Navigation = () => {
     { label: t('navigation.contact'), id: 'contact' },
   ];
 
+  const handleNavClick = (id: string) => {
+    scrollToSection(id);
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+    // Force refresh state since useAuth might not update immediately or just to be clean
+    window.location.reload();
+  };
+
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-smooth animate-fade-in-down ${isScrolled
       ? 'bg-background/95 backdrop-blur-md border-b border-subtle'
@@ -59,13 +75,22 @@ const Navigation = () => {
             {navItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => scrollToSection(item.id)}
+                onClick={() => handleNavClick(item.id)}
                 className="text-sm text-muted-foreground hover:text-foreground transition-smooth relative group"
               >
                 {item.label}
                 <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
               </button>
             ))}
+            {isAuthenticated && (
+              <button
+                onClick={handleSignOut}
+                className="text-sm text-muted-foreground hover:text-destructive transition-smooth relative group flex items-center gap-1"
+                title={t('admin.dashboard.signOut', 'Sign Out')}
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
             <LanguageSwitcher />
           </div>
 
@@ -83,12 +108,20 @@ const Navigation = () => {
                   {navItems.map((item) => (
                     <button
                       key={item.id}
-                      onClick={() => scrollToSection(item.id)}
-                      className="text-left text-lg text-muted-foreground hover:text-foreground transition-smooth py-2 border-b border-subtle"
+                      onClick={() => handleNavClick(item.id)}
+                      className="text-left text-lg text-muted-foreground hover:text-foreground transition-smooth py-2 border-b border-subtle flex items-center gap-2"
                     >
                       {item.label}
                     </button>
                   ))}
+                  {isAuthenticated && (
+                    <button
+                      onClick={handleSignOut}
+                      className="text-left text-lg text-muted-foreground hover:text-destructive transition-smooth py-2 border-b border-subtle flex items-center gap-2"
+                    >
+                      {t('admin.dashboard.signOut', 'Sign Out')} <LogOut className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
