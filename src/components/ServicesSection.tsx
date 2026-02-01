@@ -5,7 +5,7 @@ import { useInView } from "@/hooks/use-in-view";
 const ServicesSection = () => {
   const { t } = useTranslation();
   const { ref: sectionRef, isInView: sectionInView } = useInView({ threshold: 0.1 });
-  
+
   const services = [
     {
       icon: <Code className="w-6 h-6" />,
@@ -34,7 +34,7 @@ const ServicesSection = () => {
   ];
 
   return (
-    <section id="services" ref={sectionRef} className="py-12 sm:py-16 md:py-20 bg-muted/30">
+    <section id="services" ref={sectionRef} className="py-12 sm:py-16 md:py-20" style={{ background: 'linear-gradient(to bottom, hsl(220 27% 6%), hsl(220 27% 5%))' }}>
       <div className="container max-w-6xl mx-auto px-4 sm:px-6">
         <div className={`text-center mb-10 sm:mb-12 md:mb-16 transition-all duration-700 ${sectionInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
@@ -56,16 +56,16 @@ const ServicesSection = () => {
                 <div className="flex-shrink-0 p-2 sm:p-3 bg-primary/10 rounded-lg text-primary group-hover:bg-primary/20 transition-smooth">
                   <div className="w-5 h-5 sm:w-6 sm:h-6">{service.icon}</div>
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3 group-hover:text-primary transition-smooth">
                     {service.title}
                   </h3>
-                  
+
                   <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-3 sm:mb-4">
                     {service.description}
                   </p>
-                  
+
                   <div className="flex flex-wrap gap-2">
                     {service.technologies.map((tech) => (
                       <span

@@ -51,7 +51,7 @@ const SkillsSection = () => {
   };
 
   return (
-    <section id="skills" ref={sectionRef} className="py-12 sm:py-16 md:py-20 bg-background">
+    <section id="skills" ref={sectionRef} className="py-12 sm:py-16 md:py-20" style={{ background: 'linear-gradient(to bottom, hsl(220 27% 7%), hsl(220 27% 6%))' }}>
       <div className="container max-w-6xl mx-auto px-4 sm:px-6">
         <div className={`text-center mb-10 sm:mb-12 md:mb-16 transition-all duration-700 ${sectionInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
@@ -72,7 +72,7 @@ const SkillsSection = () => {
               <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-foreground group-hover:text-primary transition-smooth">
                 {skillGroup.category}
               </h3>
-              
+
               <div className="space-y-4">
                 {skillGroup.technologies.map((tech, techIndex) => (
                   <div key={tech.name} className="flex items-center justify-between">
@@ -104,7 +104,7 @@ const SkillsSection = () => {
           <div className="inline-block bg-surface/50 backdrop-blur-sm border border-subtle rounded-lg p-3 sm:p-4 font-mono text-xs sm:text-sm text-muted-foreground max-w-full overflow-x-auto">
             <div className="flex items-center justify-center gap-2">
               <span className="text-terminal">$</span>
-              <TypewriterText 
+              <TypewriterText
                 text={t('skills.terminalCommand')}
                 speed={80}
                 delay={1000}
@@ -115,7 +115,7 @@ const SkillsSection = () => {
             </div>
             {showResult && (
               <div className="mt-2">
-                <TypewriterText 
+                <TypewriterText
                   text={t('skills.terminalResult')}
                   speed={60}
                   delay={200}

@@ -6,9 +6,9 @@ import { useInView } from "@/hooks/use-in-view";
 const ContactSection = () => {
   const { t } = useTranslation();
   const { ref: sectionRef, isInView: sectionInView } = useInView({ threshold: 0.1 });
-  
+
   return (
-    <section id="contact" ref={sectionRef} className="py-12 sm:py-16 md:py-20 bg-gradient-surface">
+    <section id="contact" ref={sectionRef} className="py-12 sm:py-16 md:py-20" style={{ background: 'linear-gradient(to bottom, hsl(220 27% 5%), hsl(220 27% 4%))' }}>
       <div className="container max-w-4xl mx-auto px-4 sm:px-6">
         <div className={`text-center mb-10 sm:mb-12 md:mb-16 transition-all duration-700 ${sectionInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
@@ -32,9 +32,9 @@ const ContactSection = () => {
                   <p className="text-muted-foreground text-xs sm:text-sm mb-2 sm:mb-3">
                     {t('contact.emailDescription')}
                   </p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => window.open('mailto:quonaro@mail.ru', '_blank')}
                     className="gap-2 w-full sm:w-auto"
                   >
@@ -53,9 +53,9 @@ const ContactSection = () => {
                   <p className="text-muted-foreground text-xs sm:text-sm mb-2 sm:mb-3">
                     {t('contact.telegramDescription')}
                   </p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => window.open('https://t.me/quonaro', '_blank')}
                     className="gap-2 w-full sm:w-auto"
                   >
@@ -85,7 +85,7 @@ const ContactSection = () => {
                 <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span className="text-xs sm:text-sm">{t('contact.location')}</span>
               </div>
-              
+
               <div className="text-xs sm:text-sm text-muted-foreground">
                 <span className="inline-block w-1.5 h-1.5 sm:w-2 sm:h-2 bg-terminal rounded-full mr-2"></span>
                 {t('contact.availability')}

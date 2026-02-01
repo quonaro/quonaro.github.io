@@ -15,12 +15,13 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter basename="/" future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <Route path="/" element={<Index />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </div>
-  </TooltipProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </div>
+    </TooltipProvider>
   </QueryClientProvider >
 );
 
