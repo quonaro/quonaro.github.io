@@ -299,14 +299,18 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                                 {t('admin.form.ruPreview')}
                             </h3>
                         </div>
-                        <div className="bg-surface/20 border border-subtle rounded-3xl p-4 flex items-center justify-center shadow-xl relative overflow-hidden">
-                            <div className="w-full h-[320px] flex">
-                                <GalleryCard project={{
-                                    ...formValues,
-                                    buttons: formValues.buttons || [],
-                                    media: formValues.media || [],
-                                    technologies: formValues.technologies || []
-                                }} forcedLanguage="ru" />
+                        <div className="bg-surface/20 border border-subtle rounded-3xl flex items-center justify-center shadow-xl relative overflow-hidden">
+                            <div className="w-full h-[220px] flex">
+                                <GalleryCard
+                                    project={{
+                                        ...formValues,
+                                        buttons: formValues.buttons || [],
+                                        media: formValues.media || [],
+                                        technologies: formValues.technologies || []
+                                    }}
+                                    forcedLanguage="ru"
+                                    className="min-h-0 h-full"
+                                />
                             </div>
                         </div>
                     </div>
@@ -319,14 +323,18 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                                 {t('admin.form.enPreview')}
                             </h3>
                         </div>
-                        <div className="bg-surface/20 border border-subtle rounded-3xl p-4 flex items-center justify-center shadow-xl relative overflow-hidden">
-                            <div className="w-full h-[320px] flex">
-                                <GalleryCard project={{
-                                    ...formValues,
-                                    buttons: formValues.buttons || [],
-                                    media: formValues.media || [],
-                                    technologies: formValues.technologies || []
-                                }} forcedLanguage="en" />
+                        <div className="bg-surface/20 border border-subtle rounded-3xl flex items-center justify-center shadow-xl relative overflow-hidden">
+                            <div className="w-full h-[220px] flex">
+                                <GalleryCard
+                                    project={{
+                                        ...formValues,
+                                        buttons: formValues.buttons || [],
+                                        media: formValues.media || [],
+                                        technologies: formValues.technologies || []
+                                    }}
+                                    forcedLanguage="en"
+                                    className="min-h-0 h-full"
+                                />
                             </div>
                         </div>
                     </div>

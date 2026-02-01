@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Project } from '@/types/project';
 import { useAuth } from '@/hooks/useAuth';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ProjectForm } from './admin/ProjectForm';
 import { updateProject, deleteProject } from '@/services/projects';
@@ -17,9 +18,10 @@ interface GalleryCardProps {
     project: Project;
     forcedLanguage?: 'en' | 'ru';
     hideEditButton?: boolean;
+    className?: string;
 }
 
-export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false }: GalleryCardProps) => {
+export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false, className }: GalleryCardProps) => {
     const { t, i18n } = useTranslation();
     const { isAuthenticated } = useAuth();
     const [api, setApi] = useState<CarouselApi>();
@@ -92,14 +94,14 @@ export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false }:
 
     return (
         <div
-            className={`
+            className={cn(`
               relative rounded-2xl overflow-hidden cursor-pointer group/card border-none outline-none ring-0
               transition-[flex-grow] duration-500 ease-out will-change-[flex-grow]
               flex-1 sm:hover:flex-[2.5]
               group-hover:opacity-50 sm:hover:!opacity-100
               group-hover:grayscale sm:hover:!grayscale-0
               bg-muted/20 min-h-[400px] sm:min-h-[300px] w-full
-            `}
+            `, className)}
         >
             {/* Background Image */}
             <div className="absolute inset-0">
