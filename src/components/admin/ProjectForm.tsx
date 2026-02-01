@@ -26,10 +26,27 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
     const { t } = useTranslation();
     const [uploading, setUploading] = useState(false);
 
-    // Normalization helper for legacy data
+    // Normalization helper for legacy data or stringified JSON from DB
     const normalizeLocalField = (field: any) => {
-        if (typeof field === 'string') return { en: field, ru: field };
-        return field || { en: '', ru: '' };
+        if (!field) return { en: '', ru: '' };
+
+        let data = field;
+        if (typeof field === 'string' && field.trim().startsWith('{')) {
+            try {
+                data = JSON.parse(field);
+            } catch (e) {
+                return { en: field, ru: field };
+            }
+        }
+
+        if (typeof data === 'string') return { en: data, ru: data };
+        if (typeof data === 'object' && data !== null) {
+            return {
+                en: data.en || '',
+                ru: data.ru || ''
+            };
+        }
+        return { en: '', ru: '' };
     };
 
     const { register, control, handleSubmit, setValue, watch, formState: { isSubmitting } } = useForm<Project>({

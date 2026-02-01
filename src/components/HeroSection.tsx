@@ -1,11 +1,25 @@
 
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useTranslation, Trans } from 'react-i18next';
-
+import { SecretTerminal } from './SecretTerminal';
 
 const HeroSection = () => {
   const { t } = useTranslation();
+  const [clicks, setClicks] = useState(0);
+  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
 
+  const handleGreetingClick = () => {
+    const newCount = clicks + 1;
+    if (newCount >= 3) {
+      setIsTerminalOpen(true);
+      setClicks(0);
+    } else {
+      setClicks(newCount);
+      // Optional: reset clicks if not pressed fast enough, but 3 clicks is simple
+      setTimeout(() => setClicks(0), 2000);
+    }
+  };
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-gradient-hero relative overflow-hidden">
@@ -16,7 +30,10 @@ const HeroSection = () => {
 
       <div className="container max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10">
         {/* Terminal-style greeting */}
-        <div className="font-mono text-terminal text-sm mb-8 opacity-75 animate-fade-in-down">
+        <div
+          className="font-mono text-terminal text-sm mb-8 opacity-75 animate-fade-in-down cursor-pointer select-none active:scale-95 transition-transform"
+          onClick={handleGreetingClick}
+        >
           <span className="text-muted-foreground">{t('hero.greeting')}</span>
         </div>
 
@@ -70,7 +87,10 @@ const HeroSection = () => {
         </div>
       </div>
 
-
+      <SecretTerminal
+        isOpen={isTerminalOpen}
+        onClose={() => setIsTerminalOpen(false)}
+      />
     </section>
   );
 };
