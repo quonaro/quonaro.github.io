@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Project } from '@/types/project';
@@ -28,11 +28,141 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
     const { t } = useTranslation();
     const [uploading, setUploading] = useState(false);
     const [previewLang, setPreviewLang] = useState<'en' | 'ru'>('en');
+    const [previewApi, setPreviewApi] = useState<any>();
+    const [activeSlideIndex, setActiveSlideIndex] = useState(0);
+    const [isDragging, setIsDragging] = useState(false);
+    const [isResizing, setIsResizing] = useState(false);
+    const [dragStart, setDragStart] = useState({ x: 0, y: 0, pos: { x: 0, y: 0 }, scale: 1 });
+    const [imageDimensions, setImageDimensions] = useState<{ [key: string]: { width: number, height: number, ratio: number } }>({});
+
+    // Sync active slide index
+    useEffect(() => {
+        if (!previewApi) return;
+        const onSelect = () => setActiveSlideIndex(previewApi.selectedScrollSnap());
+        previewApi.on('select', onSelect);
+        return () => { previewApi.off('select', onSelect); };
+    }, [previewApi]);
+
+    const handleDragStart = (e: React.MouseEvent) => {
+        const media = formValues.media?.[activeSlideIndex];
+        if (!media || media.type !== 'image') return;
+
+        setIsDragging(true);
+        setDragStart({
+            x: e.clientX,
+            y: e.clientY,
+            pos: media.translate || { x: 0, y: 0 },
+            scale: media.scale || 1
+        });
+    };
+
+    const handleResizeStart = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const media = formValues.media?.[activeSlideIndex];
+        if (!media || media.type !== 'image') return;
+
+        setIsResizing(true);
+        setDragStart({
+            x: e.clientX,
+            y: e.clientY,
+            pos: media.translate || { x: 0, y: 0 },
+            scale: media.scale || 1
+        });
+    };
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (isDragging) {
+            const deltaX = e.clientX - dragStart.x;
+            const deltaY = e.clientY - dragStart.y;
+
+            const newX = dragStart.pos.x + deltaX;
+            const newY = dragStart.pos.y + deltaY;
+
+            const updatedMedia = [...(formValues.media || [])];
+            if (updatedMedia[activeSlideIndex]) {
+                updatedMedia[activeSlideIndex] = {
+                    ...updatedMedia[activeSlideIndex],
+                    translate: { x: newX, y: newY }
+                };
+                setValue('media', updatedMedia);
+            }
+        } else if (isResizing) {
+            const deltaY = dragStart.y - e.clientY; // Up = bigger
+            const deltaX = e.clientX - dragStart.x; // Right = bigger
+            const delta = (Math.abs(deltaY) > Math.abs(deltaX) ? deltaY : deltaX) * 0.01;
+
+            const newScale = Math.max(0.1, Math.min(5, dragStart.scale + delta));
+
+            const updatedMedia = [...(formValues.media || [])];
+            if (updatedMedia[activeSlideIndex]) {
+                updatedMedia[activeSlideIndex] = {
+                    ...updatedMedia[activeSlideIndex],
+                    scale: newScale
+                };
+                setValue('media', updatedMedia);
+            }
+        }
+    };
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
+        setIsResizing(false);
+    };
+
+    const updateScale = (val: number[]) => {
+        const updatedMedia = [...(formValues.media || [])];
+        if (updatedMedia[activeSlideIndex]) {
+            updatedMedia[activeSlideIndex] = {
+                ...updatedMedia[activeSlideIndex],
+                scale: val[0]
+            };
+            setValue('media', updatedMedia);
+        }
+    };
+
+    const handleImageLoad = (url: string, e: React.SyntheticEvent<HTMLImageElement>) => {
+        const { naturalWidth, naturalHeight } = e.currentTarget;
+        setImageDimensions(prev => ({
+            ...prev,
+            [url]: {
+                width: naturalWidth,
+                height: naturalHeight,
+                ratio: naturalWidth / naturalHeight
+            }
+        }));
+    };
+
+    const getFrameStyles = () => {
+        const media = formValues.media?.[activeSlideIndex];
+        if (!media || !imageDimensions[media.url]) return { width: '100%', height: '100%' };
+
+        const dim = imageDimensions[media.url];
+        const containerWidth = 800; // Expected container width
+        const containerHeight = 500;
+        const containerRatio = containerWidth / containerHeight;
+
+        let frameWidth, frameHeight;
+        if (dim.ratio > containerRatio) {
+            frameWidth = containerWidth;
+            frameHeight = containerWidth / dim.ratio;
+        } else {
+            frameHeight = containerHeight;
+            frameWidth = containerHeight * dim.ratio;
+        }
+
+        return {
+            width: `${frameWidth}px`,
+            height: `${frameHeight}px`,
+            left: '50%',
+            top: '50%',
+            marginLeft: `-${frameWidth / 2}px`,
+            marginTop: `-${frameHeight / 2}px`
+        };
+    };
 
     // Normalization helper for legacy data or stringified JSON from DB
     const normalizeLocalField = (field: any) => {
         if (!field) return { en: '', ru: '' };
-
         let data = field;
         if (typeof field === 'string' && field.trim().startsWith('{')) {
             try {
@@ -79,7 +209,7 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
         name: "buttons"
     });
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isCover: boolean = false) => {
         const files = e.target.files;
         if (!files) return;
 
@@ -89,9 +219,16 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                 const file = files[i];
                 const compressed = await compressImage(file);
                 const url = await uploadProjectMedia(compressed);
-                appendMedia({ type: 'image', url });
+
+                if (isCover) {
+                    setValue('cover_image', url);
+                    toast.success(t('admin.form.successUpdated'));
+                    break; // Only one cover image
+                } else {
+                    appendMedia({ type: 'image', url });
+                    toast.success(t('admin.form.successCreated'));
+                }
             }
-            toast.success(t('admin.form.successCreated')); // reused for generic success or could add specific one
         } catch (error) {
             console.error(error);
             toast.error(t('admin.form.errorUpload'));
@@ -146,7 +283,111 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                     </div>
                 </div>
 
-                {/* 2. Dynamic Content (Tabs for RU/EN) */}
+                {/* 2. Cover & Media Section */}
+                <div className="space-y-6 border p-6 rounded-2xl bg-surface/30 backdrop-blur-sm border-subtle">
+                    <div className="flex items-center gap-2 mb-2 text-primary">
+                        <ImageIcon className="w-5 h-5" />
+                        <h3 className="font-bold text-lg">{t('admin.form.media')}</h3>
+                    </div>
+
+                    {/* Cover Image Sub-section */}
+                    <div className="space-y-3">
+                        <Label className="text-muted-foreground flex items-center gap-2">
+                            <Layout className="w-4 h-4" /> {t('admin.form.coverImage')}
+                        </Label>
+                        <div className="flex gap-4 items-start">
+                            {formValues.cover_image ? (
+                                <div className="relative w-40 aspect-video bg-muted/40 rounded-xl overflow-hidden border border-subtle shadow-inner group">
+                                    <img src={formValues.cover_image} alt="Cover" className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <Button
+                                            type="button"
+                                            size="icon"
+                                            variant="destructive"
+                                            className="h-8 w-8 rounded-full"
+                                            onClick={() => setValue('cover_image', '')}
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <label className="flex flex-col items-center justify-center w-40 aspect-video border-2 border-dashed border-subtle rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
+                                    {uploading ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : <Upload className="w-6 h-6 text-muted-foreground group-hover:text-primary" />}
+                                    <span className="text-[10px] mt-2 font-medium text-muted-foreground group-hover:text-primary uppercase tracking-wider text-center px-2">
+                                        {t('admin.form.uploadCover')}
+                                    </span>
+                                    <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, true)} className="hidden" />
+                                </label>
+                            )}
+                            <div className="flex-1 space-y-2">
+                                <p className="text-[10px] text-muted-foreground italic">
+                                    {t('admin.form.previewDesc')}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="h-px bg-subtle/50 my-6" />
+
+                    {/* Gallery Images Sub-section */}
+                    <div className="space-y-3">
+                        <Label className="text-muted-foreground flex items-center gap-2">
+                            <ImageIcon className="w-4 h-4" /> {t('admin.form.media')} (Gallery)
+                        </Label>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                            {mediaFields.map((field, index) => (
+                                <div
+                                    key={field.id}
+                                    onClick={() => previewApi?.scrollTo(index)}
+                                    className={cn(
+                                        "relative group aspect-video bg-muted/40 rounded-xl overflow-hidden border transition-all cursor-pointer shadow-inner",
+                                        activeSlideIndex === index ? "border-primary ring-2 ring-primary/20 scale-95" : "border-subtle"
+                                    )}
+                                >
+                                    <img
+                                        src={field.url}
+                                        alt="preview"
+                                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                        onLoad={(e) => handleImageLoad(field.url, e)}
+                                    />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                                        <Button
+                                            type="button"
+                                            size="icon"
+                                            variant="destructive"
+                                            className="h-8 w-8 rounded-full"
+                                            onClick={() => removeMedia(index)}
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+                            <label className="flex flex-col items-center justify-center aspect-video border-2 border-dashed border-subtle rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
+                                {uploading ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : <Upload className="w-6 h-6 text-muted-foreground group-hover:text-primary" />}
+                                <span className="text-[10px] mt-2 font-medium text-muted-foreground group-hover:text-primary uppercase tracking-wider">{t('admin.form.uploadImages')}</span>
+                                <input type="file" multiple accept="image/*" onChange={(e) => handleFileUpload(e, false)} className="hidden" />
+                            </label>
+                        </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-subtle/50">
+                        <Label className="text-muted-foreground mb-2 block">{t('admin.form.videoUrl')} (YouTube)</Label>
+                        <div className="flex gap-2">
+                            <Input placeholder={t('admin.form.videoPlaceholder')} id="video-url-input" className="bg-background/50" />
+                            <Button type="button" variant="secondary" onClick={() => {
+                                const input = document.getElementById('video-url-input') as HTMLInputElement;
+                                if (input.value) {
+                                    appendMedia({ type: 'video', url: input.value });
+                                    input.value = '';
+                                }
+                            }}>{t('admin.form.add')}</Button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 3. Dynamic Content (Tabs for RU/EN) */}
                 <div className="space-y-4 border p-6 rounded-2xl bg-surface/30 backdrop-blur-sm border-subtle">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2 text-primary">
@@ -183,52 +424,6 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                             </div>
                         </TabsContent>
                     </Tabs>
-                </div>
-
-                {/* 3. Media Section */}
-                <div className="space-y-4 border p-6 rounded-2xl bg-surface/30 backdrop-blur-sm border-subtle">
-                    <div className="flex items-center gap-2 mb-4 text-primary">
-                        <ImageIcon className="w-5 h-5" />
-                        <h3 className="font-bold text-lg">{t('admin.form.media')}</h3>
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                        {mediaFields.map((field, index) => (
-                            <div key={field.id} className="relative group aspect-video bg-muted/40 rounded-xl overflow-hidden border border-subtle shadow-inner">
-                                <img src={field.url} alt="preview" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <Button
-                                        type="button"
-                                        size="icon"
-                                        variant="destructive"
-                                        className="h-8 w-8 rounded-full"
-                                        onClick={() => removeMedia(index)}
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        ))}
-                        <label className="flex flex-col items-center justify-center aspect-video border-2 border-dashed border-subtle rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
-                            {uploading ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : <Upload className="w-6 h-6 text-muted-foreground group-hover:text-primary" />}
-                            <span className="text-[10px] mt-2 font-medium text-muted-foreground group-hover:text-primary uppercase tracking-wider">{t('admin.form.uploadImages')}</span>
-                            <input type="file" multiple accept="image/*" onChange={handleFileUpload} className="hidden" />
-                        </label>
-                    </div>
-
-                    <div className="pt-4 border-t border-subtle/50">
-                        <Label className="text-muted-foreground mb-2 block">{t('admin.form.videoUrl')} (YouTube)</Label>
-                        <div className="flex gap-2">
-                            <Input placeholder={t('admin.form.videoPlaceholder')} id="video-url-input" className="bg-background/50" />
-                            <Button type="button" variant="secondary" onClick={() => {
-                                const input = document.getElementById('video-url-input') as HTMLInputElement;
-                                if (input.value) {
-                                    appendMedia({ type: 'video', url: input.value });
-                                    input.value = '';
-                                }
-                            }}>{t('admin.form.add')}</Button>
-                        </div>
-                    </div>
                 </div>
 
                 {/* 4. Custom Buttons Section */}
@@ -295,11 +490,12 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
             </div>
 
             {/* Right Column: Previews & Actions */}
-            <div className="hidden xl:flex flex-col w-[400px] 2xl:w-[500px] space-y-6">
+            <div className="hidden xl:flex flex-col w-[450px] 2xl:w-[600px] space-y-6">
                 <div className="flex-1 overflow-y-auto max-h-[80vh] space-y-6 pr-2 scrollbar-thin scrollbar-thumb-subtle">
                     {/* Preview Toggle & Card */}
                     <div className="space-y-4">
                         <div className="bg-surface/30 p-1 rounded-full border border-subtle flex relative">
+                            {/* ... buttons for en/ru ... */}
                             <button
                                 type="button"
                                 onClick={() => setPreviewLang('en')}
@@ -326,8 +522,55 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                             </button>
                         </div>
 
-                        <div className="w-full relative overflow-hidden transition-all duration-500">
-                            <div className="w-full flex h-[500px]">
+                        <div className="w-full relative overflow-hidden transition-all duration-500 rounded-2xl shadow-2xl border border-subtle bg-neutral-950">
+                            <div
+                                className={cn(
+                                    "w-full h-[500px] cursor-move select-none relative group/preview",
+                                    isDragging && "cursor-grabbing",
+                                    isResizing && "cursor-nwse-resize"
+                                )}
+                                onMouseDown={handleDragStart}
+                                onMouseMove={handleMouseMove}
+                                onMouseUp={handleMouseUp}
+                                onMouseLeave={handleMouseUp}
+                            >
+                                {/* Photoshop-style Canvas Border & Handles - Sync with content transform and ratio */}
+                                <div
+                                    className="absolute pointer-events-none z-20 opacity-0 group-hover/preview:opacity-100 transition-opacity border-2 border-primary/40 rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.5)] bg-primary/5"
+                                    style={{
+                                        ...getFrameStyles(),
+                                        transform: `
+                                            translate(${formValues.media?.[activeSlideIndex]?.translate?.x || 0}px, ${formValues.media?.[activeSlideIndex]?.translate?.y || 0}px)
+                                            scale(${formValues.media?.[activeSlideIndex]?.scale || 1})
+                                        `,
+                                        transformOrigin: 'center'
+                                    }}
+                                >
+                                    {/* Corner Handles */}
+                                    <div
+                                        className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-primary border border-white rounded-sm pointer-events-auto cursor-nwse-resize hover:scale-125 transition-transform"
+                                        onMouseDown={handleResizeStart}
+                                    />
+                                    <div
+                                        className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-primary border border-white rounded-sm pointer-events-auto cursor-nesw-resize hover:scale-125 transition-transform"
+                                        onMouseDown={handleResizeStart}
+                                    />
+                                    <div
+                                        className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-primary border border-white rounded-sm pointer-events-auto cursor-nesw-resize hover:scale-125 transition-transform"
+                                        onMouseDown={handleResizeStart}
+                                    />
+                                    <div
+                                        className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-primary border border-white rounded-sm pointer-events-auto cursor-nwse-resize hover:scale-125 transition-transform"
+                                        onMouseDown={handleResizeStart}
+                                    />
+
+                                    {/* Visual corners */}
+                                    <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-primary" />
+                                    <div className="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-primary" />
+                                    <div className="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-primary" />
+                                    <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-primary" />
+                                </div>
+
                                 <GalleryCard
                                     key={previewLang} // Force re-render on lang change for animation
                                     project={{
@@ -339,9 +582,42 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                                     forcedLanguage={previewLang}
                                     forceHover={true}
                                     hideEditButton={true}
-                                    className="min-h-[0px] h-full w-full"
+                                    setCarouselApi={setPreviewApi}
+                                    disableGestures={true}
+                                    className="min-h-[0px] h-full w-full pointer-events-none"
                                 />
                             </div>
+
+                            {/* Transformation Toolbar */}
+                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-xl border border-white/10 px-6 py-3 rounded-2xl flex items-center gap-6 z-50 shadow-2xl min-w-[300px]">
+                                <div className="flex flex-col gap-1 flex-1">
+                                    <div className="flex justify-between items-center text-[10px] uppercase tracking-widest font-bold text-white/50">
+                                        <span>Scale / Zoom</span>
+                                        <span className="text-primary">{Math.round((formValues.media?.[activeSlideIndex]?.scale || 1) * 100)}%</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="0.1"
+                                        max="5"
+                                        step="0.01"
+                                        value={formValues.media?.[activeSlideIndex]?.scale || 1}
+                                        onChange={(e) => updateScale([parseFloat(e.target.value)])}
+                                        className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary"
+                                    />
+                                </div>
+                                <div className="h-8 w-px bg-white/10" />
+                                <div className="text-[10px] uppercase tracking-widest font-bold text-white/50 whitespace-nowrap">
+                                    Pan Enabled
+                                </div>
+                            </div>
+
+                            {/* Help Overlay */}
+                            {!isDragging && (
+                                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold text-white/80 pointer-events-none flex items-center gap-2 border border-white/10 z-50">
+                                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                                    TRANSFORM MODE: DRAG TO PAN | SLIDER TO ZOOM
+                                </div>
+                            )}
                         </div>
                     </div>
 

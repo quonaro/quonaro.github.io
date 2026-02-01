@@ -2,6 +2,9 @@ export interface ProjectMedia {
     type: 'image' | 'video';
     url: string;
     thumbnail?: string; // For video placeholder
+    objectFit?: 'cover' | 'contain';
+    translate?: { x: number; y: number };
+    scale?: number;
 }
 
 export interface ProjectLinks {
@@ -34,5 +37,6 @@ export interface Project {
     };
     technologies: string[];
     media?: ProjectMedia[];
+    cover_image?: string;
     is_in_gallery?: boolean;
 }

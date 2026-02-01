@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import Fade from 'embla-carousel-fade';
 import Autoplay from 'embla-carousel-autoplay';
 import { ExternalLink, Github, FileText, Download, Play, Youtube, Figma, Book, Monitor, Pencil, Trash2 } from 'lucide-react';
@@ -20,11 +21,14 @@ interface GalleryCardProps {
     hideEditButton?: boolean;
     forceHover?: boolean;
     className?: string;
+    setCarouselApi?: (api: CarouselApi) => void;
+    disableGestures?: boolean;
 }
 
-export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false, forceHover = false, className }: GalleryCardProps) => {
+export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false, forceHover = false, className, setCarouselApi, disableGestures = false }: GalleryCardProps) => {
     const { t, i18n } = useTranslation();
     const { isAuthenticated } = useAuth();
+    const queryClient = useQueryClient();
     const [api, setApi] = useState<CarouselApi>();
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -77,7 +81,7 @@ export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false, f
             await updateProject(id, updates);
             toast.success(t('admin.form.successUpdated'));
             setIsEditDialogOpen(false);
-            window.location.reload();
+            queryClient.invalidateQueries({ queryKey: ['projects'] });
         } catch (error: any) {
             toast.error(error.message);
         }
@@ -87,7 +91,7 @@ export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false, f
         try {
             await deleteProject(project.id);
             toast.success(t('admin.form.successDeleted'));
-            window.location.reload();
+            queryClient.invalidateQueries({ queryKey: ['projects'] });
         } catch (error: any) {
             toast.error(error.message);
         }
@@ -108,51 +112,105 @@ export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false, f
                 isHovered && "opacity-100 grayscale-0 sm:flex-[2.5]",
                 className)}
         >
-            {/* Background Image */}
+            {/* Background Image / Media */}
             <div className="absolute inset-0">
-                {project.media && project.media.length > 1 ? (
-                    <Carousel
-                        setApi={setApi}
-                        className="w-full h-full"
-                        opts={{ loop: true }}
-                        plugins={[
-                            Fade(),
-                            Autoplay({
-                                delay: autoplayDelay,
-                                stopOnInteraction: false,
-                                stopOnMouseEnter: true
-                            })
-                        ]}
-                    >
-                        <CarouselContent className="h-full ml-0">
-                            {project.media.map((media, index) => (
-                                <CarouselItem key={index} className="h-full pl-0">
-                                    <img
-                                        src={media.url}
-                                        alt={`${getLocal(project.name)} ${index + 1}`}
-                                        className={cn("w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-105", isHovered && "scale-105")}
-                                    />
-                                </CarouselItem>
-                            ))}
-                        </CarouselContent>
-                        <CarouselPrevious
-                            className={cn("left-2 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 delay-500 group-hover/card:delay-0 z-40", isHovered && "opacity-100 delay-0")}
+                <div className={cn(
+                    "absolute inset-0 transition-opacity duration-700 opacity-100 group-hover/card:opacity-0",
+                    isHovered && "opacity-0"
+                )}>
+                    {project.cover_image ? (
+                        <img
+                            src={project.cover_image}
+                            alt={getLocal(project.name)}
+                            className="w-full h-full object-cover"
                         />
-                        <CarouselNext
-                            className={cn("right-2 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 delay-500 group-hover/card:delay-0 z-40", isHovered && "opacity-100 delay-0")}
+                    ) : project.media && project.media.length > 0 ? (
+                        <img
+                            src={project.media[0].url}
+                            alt={getLocal(project.name)}
+                            className="w-full h-full object-cover"
                         />
-                    </Carousel>
-                ) : project.media && project.media.length > 0 ? (
-                    <img
-                        src={project.media[0].url}
-                        alt={getLocal(project.name)}
-                        className={cn("w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-105", isHovered && "scale-105")}
-                    />
-                ) : (
-                    <div className="w-full h-full bg-neutral-900 flex items-center justify-center text-neutral-700">
-                        {t('admin.dashboard.noMedia')}
-                    </div>
-                )}
+                    ) : (
+                        <div className="w-full h-full bg-neutral-900 flex items-center justify-center text-neutral-700">
+                            {t('admin.dashboard.noMedia')}
+                        </div>
+                    )}
+                </div>
+
+                <div className={cn(
+                    "absolute inset-0 transition-opacity duration-700 opacity-0 group-hover/card:opacity-100",
+                    isHovered && "opacity-100"
+                )}>
+                    {project.media && project.media.length > 1 ? (
+                        <Carousel
+                            setApi={(api) => {
+                                setApi(api);
+                                if (setCarouselApi) setCarouselApi(api);
+                            }}
+                            className="w-full h-full"
+                            opts={{
+                                loop: true,
+                                watchDrag: !disableGestures
+                            }}
+                            plugins={disableGestures ? [] : [
+                                Fade(),
+                                Autoplay({
+                                    delay: autoplayDelay,
+                                    stopOnInteraction: false,
+                                    stopOnMouseEnter: true
+                                })
+                            ]}
+                        >
+                            <CarouselContent className="h-full ml-0">
+                                {project.media.map((media, index) => (
+                                    <CarouselItem key={index} className="h-full pl-0">
+                                        <img
+                                            src={media.url}
+                                            alt={`${getLocal(project.name)} ${index + 1}`}
+                                            className={cn(
+                                                "w-full h-full transition-transform duration-700",
+                                                (media.scale || media.translate) ? "object-contain" : (media.objectFit === 'contain' ? "object-contain" : "object-cover")
+                                            )}
+                                            style={{
+                                                transform: `
+                                                    translate(${media.translate?.x || 0}px, ${media.translate?.y || 0}px)
+                                                    scale(${media.scale || 1})
+                                                `,
+                                                transformOrigin: 'center'
+                                            }}
+                                        />
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                            <CarouselPrevious
+                                className={cn("left-2 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 z-40")}
+                            />
+                            <CarouselNext
+                                className={cn("right-2 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 z-40")}
+                            />
+                        </Carousel>
+                    ) : project.media && project.media.length > 0 ? (
+                        <img
+                            src={project.media[0].url}
+                            alt={getLocal(project.name)}
+                            className={cn(
+                                "w-full h-full transition-transform duration-700",
+                                (project.media[0].scale || project.media[0].translate) ? "object-contain" : (project.media[0].objectFit === 'contain' ? "object-contain" : "object-cover")
+                            )}
+                            style={{
+                                transform: `
+                                    translate(${project.media[0].translate?.x || 0}px, ${project.media[0].translate?.y || 0}px)
+                                    scale(${project.media[0].scale || 1})
+                                `,
+                                transformOrigin: 'center'
+                            }}
+                        />
+                    ) : !project.cover_image ? (
+                        <div className="w-full h-full bg-neutral-900 flex items-center justify-center text-neutral-700">
+                            {t('admin.dashboard.noMedia')}
+                        </div>
+                    ) : null}
+                </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
             </div>
 
@@ -211,60 +269,93 @@ export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false, f
                 </div>
             )}
 
-            {/* Content Content */}
-            <div className="absolute inset-0 p-6 pb-10 flex flex-col justify-end pointer-events-none">
-                <div className={cn("transition-all duration-300 transform translate-y-0 sm:translate-y-2 sm:group-hover/card:translate-y-0 opacity-100 sm:opacity-90 sm:group-hover/card:opacity-100 pointer-events-auto w-full", isHovered && "sm:translate-y-0 sm:opacity-100")}>
-                    <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 truncate">
-                        {getLocal(project.name, 'Project Name')}
-                    </h3>
+            {/* Static Content (Visible when not hovered) */}
+            <div className={cn(
+                "absolute inset-x-0 bottom-0 p-6 transition-opacity duration-300 pointer-events-none z-10",
+                "opacity-100 group-hover/card:opacity-0",
+                isHovered && "opacity-0"
+            )}>
+                <h3 className="text-xl font-bold text-white mb-2 truncate drop-shadow-lg">
+                    {getLocal(project.name, 'Project Name')}
+                </h3>
+            </div>
 
-                    {/* Expanded Content */}
-                    <div className={cn("overflow-hidden transition-all duration-500 delay-75 max-h-60 opacity-100 sm:max-h-0 sm:opacity-0 sm:group-hover/card:max-h-60 sm:group-hover/card:opacity-100 mt-2", isHovered && "sm:max-h-60 sm:opacity-100")}>
-                        <p className="text-gray-300 text-[12px] sm:text-sm mb-4 line-clamp-2">
-                            {getLocal(project.shortDescription)}
-                        </p>
-                        <div className="flex flex-wrap gap-2 mb-3">
-                            {project.technologies && project.technologies.map((tech) => (
-                                <span
-                                    key={tech}
-                                    className="text-[10px] px-2 py-0.5 bg-black/40 backdrop-blur-md text-white/90 rounded-md font-mono border border-white/20"
-                                >
-                                    {tech}
-                                </span>
-                            ))}
-                        </div>
-                        <div className="flex gap-2 flex-wrap">
-                            {project.buttons && project.buttons.map((btn, i) => {
-                                const iconMap = {
-                                    github: Github,
-                                    docs: FileText,
-                                    download: Download,
-                                    play: Play,
-                                    youtube: Youtube,
-                                    figma: Figma,
-                                    book: Book,
-                                    monitor: Monitor,
-                                    external: ExternalLink
-                                };
-                                const Icon = btn.icon && iconMap[btn.icon as keyof typeof iconMap] ? iconMap[btn.icon as keyof typeof iconMap] : ExternalLink;
-                                return (
-                                    <Button
-                                        key={i}
-                                        variant="default"
-                                        size="sm"
-                                        className="h-8 text-[10px] font-bold uppercase tracking-wider bg-primary/30 hover:bg-primary/50 text-white border border-primary/40"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            window.open(btn.url, '_blank', 'noopener,noreferrer');
-                                        }}
-                                    >
-                                        <Icon className="w-3 h-3 mr-1" />
-                                        {getLabel(btn)}
-                                    </Button>
-                                )
-                            })}
-                        </div>
-                    </div>
+            {/* Hover Footer (Visible only on hover/expand) */}
+            <div className={cn(
+                "absolute inset-x-0 bottom-0 bg-neutral-900/40 backdrop-blur-2xl border-t border-white/10 p-6 flex flex-col gap-4 z-40",
+                "transform transition-all duration-500 ease-out",
+                "translate-y-full opacity-0 group-hover/card:translate-y-0 group-hover/card:opacity-100",
+                isHovered && "translate-y-0 opacity-100",
+                "pointer-events-auto"
+            )}>
+                <div className="flex flex-col gap-2">
+                    <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-none">
+                        {getLocal(project.name)}
+                    </h3>
+                    <p className="text-gray-300 text-xs sm:text-sm line-clamp-2 leading-relaxed">
+                        {getLocal(project.shortDescription)}
+                    </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                    {project.technologies?.map((tech) => {
+                        const colors = [
+                            'bg-blue-500/20 text-blue-400 border-blue-500/30',
+                            'bg-purple-500/20 text-purple-400 border-purple-500/30',
+                            'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+                            'bg-orange-500/20 text-orange-400 border-orange-500/30',
+                            'bg-pink-500/20 text-pink-400 border-pink-500/30',
+                            'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
+                            'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
+                            'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+                        ];
+                        const charCodeSum = tech.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                        const colorClass = colors[charCodeSum % colors.length];
+
+                        return (
+                            <span
+                                key={tech}
+                                className={cn(
+                                    "text-[10px] px-2 py-0.5 rounded font-mono border backdrop-blur-md transition-colors",
+                                    colorClass
+                                )}
+                            >
+                                {tech}
+                            </span>
+                        );
+                    })}
+                </div>
+
+                <div className="flex gap-2 flex-wrap sm:flex-nowrap">
+                    {project.buttons?.map((btn, i) => {
+                        const iconMap = {
+                            github: Github,
+                            docs: FileText,
+                            download: Download,
+                            play: Play,
+                            youtube: Youtube,
+                            figma: Figma,
+                            book: Book,
+                            monitor: Monitor,
+                            external: ExternalLink
+                        };
+                        const Icon = btn.icon && iconMap[btn.icon as keyof typeof iconMap] ? iconMap[btn.icon as keyof typeof iconMap] : ExternalLink;
+                        return (
+                            <Button
+                                key={i}
+                                variant="default"
+                                size="sm"
+                                className="h-9 px-4 flex-1 sm:flex-none text-[10px] font-bold uppercase tracking-wider bg-primary hover:bg-primary/90 text-white border-none shadow-lg shadow-primary/20"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.open(btn.url, '_blank', 'noopener,noreferrer');
+                                }}
+                            >
+                                <Icon className="w-3.5 h-3.5 mr-2" />
+                                {getLabel(btn)}
+                            </Button>
+                        )
+                    })}
                 </div>
             </div>
         </div>

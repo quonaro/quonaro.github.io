@@ -136,6 +136,8 @@
       "media": "Media",
       "uploadImages": "Upload Images",
       "videoUrl": "Video URL",
+      "coverImage": "Cover Image",
+      "uploadCover": "Upload Cover Image",
       "add": "Add",
       "save": "Save Project",
       "saving": "Saving...",
