@@ -65,10 +65,10 @@ export const GalleryCard = ({ project, forcedLanguage }: GalleryCardProps) => {
             className={`
               relative rounded-2xl overflow-hidden cursor-pointer group/card border-none outline-none ring-0
               transition-[flex-grow] duration-500 ease-out will-change-[flex-grow]
-              flex-1 hover:flex-[2.5]
-              group-hover:opacity-50 hover:!opacity-100
-              group-hover:grayscale hover:!grayscale-0
-              bg-muted/20 min-h-[300px] w-full
+              flex-1 sm:hover:flex-[2.5]
+              group-hover:opacity-50 sm:hover:!opacity-100
+              group-hover:grayscale sm:hover:!grayscale-0
+              bg-muted/20 min-h-[400px] sm:min-h-[300px] w-full
             `}
         >
             {/* Background Image */}
@@ -121,14 +121,14 @@ export const GalleryCard = ({ project, forcedLanguage }: GalleryCardProps) => {
 
             {/* Content Content */}
             <div className="absolute inset-0 p-6 pb-10 flex flex-col justify-end pointer-events-none">
-                <div className="transition-all duration-300 transform translate-y-2 group-hover/card:translate-y-0 opacity-100 sm:opacity-90 group-hover/card:opacity-100 pointer-events-auto w-full">
+                <div className="transition-all duration-300 transform translate-y-0 sm:translate-y-2 sm:group-hover/card:translate-y-0 opacity-100 sm:opacity-90 sm:group-hover/card:opacity-100 pointer-events-auto w-full">
                     <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 truncate">
                         {getLocal(project.name, 'Project Name')}
                     </h3>
 
                     {/* Expanded Content */}
-                    <div className="overflow-hidden transition-all duration-500 delay-75 max-h-0 opacity-0 group-hover/card:max-h-60 group-hover/card:opacity-100 mt-2">
-                        <p className="text-gray-300 text-sm mb-4 line-clamp-2">
+                    <div className="overflow-hidden transition-all duration-500 delay-75 max-h-60 opacity-100 sm:max-h-0 sm:opacity-0 sm:group-hover/card:max-h-60 sm:group-hover/card:opacity-100 mt-2">
+                        <p className="text-gray-300 text-[12px] sm:text-sm mb-4 line-clamp-2">
                             {getLocal(project.shortDescription)}
                         </p>
                         <div className="flex flex-wrap gap-2 mb-3">

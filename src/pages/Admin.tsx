@@ -34,26 +34,9 @@ const AdminPage = () => {
     };
 
     useEffect(() => {
-        const checkAuth = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                navigate('/login');
-                return;
-            }
-            loadProjects();
-            setLoading(false);
-        };
-
-        checkAuth();
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (!session) {
-                navigate('/login');
-            }
-        });
-
-        return () => subscription.unsubscribe();
-    }, [navigate]);
+        loadProjects();
+        setLoading(false);
+    }, []);
 
     const loadProjects = async () => {
         try {
@@ -67,7 +50,7 @@ const AdminPage = () => {
 
     const handleSignOut = async () => {
         await supabase.auth.signOut();
-        navigate('/login');
+        navigate('/');
     };
 
     const handleCreate = async (data: Project) => {
