@@ -1,4 +1,4 @@
-import { Github, ExternalLink, Play, FileText, Download, Youtube, Figma, Book, Monitor, Plus, Pencil, Trash2 } from "lucide-react";
+import { Github, ExternalLink, Play, FileText, Download, Youtube, Figma, Book, Monitor, Plus, Pencil, Trash2, Star } from "lucide-react";
 import Fade from 'embla-carousel-fade';
 import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,9 @@ import { createProject, updateProject, deleteProject } from "@/services/projects
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
-const ProjectCard = ({ project }: { project: Project }) => {
+const ProjectCard = ({ project, galleryCount, refetch }: { project: Project; galleryCount: number; refetch: () => void }) => {
     const { t, i18n } = useTranslation();
     const { isAuthenticated } = useAuth();
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -61,7 +62,7 @@ const ProjectCard = ({ project }: { project: Project }) => {
             await updateProject(id, updates);
             toast.success(t('admin.form.successUpdated'));
             setIsEditDialogOpen(false);
-            window.location.reload();
+            refetch();
         } catch (error: any) {
             toast.error(error.message);
         }
@@ -71,12 +72,28 @@ const ProjectCard = ({ project }: { project: Project }) => {
         try {
             await deleteProject(project.id);
             toast.success(t('admin.form.successDeleted'));
-            window.location.reload();
+            refetch();
         } catch (error: any) {
             toast.error(error.message);
         }
     };
 
+
+    const handleToggleGallery = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!project.is_in_gallery && galleryCount >= 7) {
+            toast.error(t('admin.gallery.limitReached'));
+            return;
+        }
+
+        try {
+            await updateProject(project.id, { is_in_gallery: !project.is_in_gallery });
+            toast.success(!project.is_in_gallery ? t('admin.gallery.added') : t('admin.gallery.removed'));
+            refetch();
+        } catch (error: any) {
+            toast.error(error.message);
+        }
+    };
     return (
         <div
             onClick={() => window.open(primaryUrl, '_blank', 'noopener,noreferrer')}
@@ -278,6 +295,22 @@ const ProjectCard = ({ project }: { project: Project }) => {
                         </AlertDialog>
                     </div>
                 )}
+
+                {/* Gallery Toggle Button */}
+                {isAuthenticated && (
+                    <button
+                        onClick={handleToggleGallery}
+                        className={cn(
+                            "absolute top-2 left-2 z-50 p-2 rounded-full backdrop-blur-md border transition-all duration-300 shadow-xl",
+                            project.is_in_gallery
+                                ? "bg-yellow-500/20 border-yellow-500/50 text-yellow-500 opacity-100"
+                                : "bg-white/10 border-white/20 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-yellow-500 hover:bg-yellow-500/10"
+                        )}
+                        title={project.is_in_gallery ? "Remove from Gallery" : "Add to Gallery"}
+                    >
+                        <Star className={cn("w-4 h-4", project.is_in_gallery && "fill-yellow-500")} />
+                    </button>
+                )}
             </div>
         </div>
     );
@@ -285,7 +318,7 @@ const ProjectCard = ({ project }: { project: Project }) => {
 
 export const ProjectsDialog = () => {
     const { t } = useTranslation();
-    const { projects } = useProjects();
+    const { projects, refetch } = useProjects();
     const { isAuthenticated } = useAuth();
     const navigate = useNavigate();
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -295,12 +328,13 @@ export const ProjectsDialog = () => {
             await createProject(data);
             toast.success(t('admin.form.successCreated'));
             setIsFormOpen(false);
-            // Refreshing the page or state would be ideal, but for now we'll just close
-            window.location.reload();
+            refetch();
         } catch (error: any) {
             toast.error(error.message);
         }
     };
+
+    const galleryCount = projects.filter(p => p.is_in_gallery).length;
 
     return (
         <div className="flex flex-wrap items-center justify-center gap-4 mt-4">
@@ -313,13 +347,20 @@ export const ProjectsDialog = () => {
                     </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-7xl h-[90vh] p-0 bg-background/95 backdrop-blur-xl border-subtle">
-                    <DialogHeader className="px-6 py-4 border-b border-subtle">
+                    <DialogHeader className="px-6 py-4 border-b border-subtle flex flex-row items-center justify-start gap-4">
+                        {isAuthenticated && (
+                            <div className="text-sm font-mono px-3 py-1 bg-muted/50 rounded-md border border-subtle">
+                                <span className={galleryCount >= 7 ? "text-red-500 font-bold" : "text-primary"}>
+                                    {t('admin.gallery.counter', { count: galleryCount })}
+                                </span>
+                            </div>
+                        )}
                         <DialogTitle className="text-2xl font-bold">{t('projects.title')}</DialogTitle>
                     </DialogHeader>
                     <ScrollArea className="h-[calc(90vh-80px)] px-6 py-6">
                         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
                             {projects.map((project) => (
-                                <ProjectCard key={project.id} project={project} />
+                                <ProjectCard key={project.id} project={project} galleryCount={galleryCount} refetch={refetch} />
                             ))}
                         </div>
                     </ScrollArea>

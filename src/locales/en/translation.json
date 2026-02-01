@@ -145,7 +145,7 @@
       "successDeleted": "Project deleted",
       "errorUpload": "Failed to upload images",
       "basicInfo": "Basic Info",
-      "buttonsCount": "Buttons (Max 3)",
+      "buttonsCount": "Buttons",
       "addButton": "Add Button",
       "buttonNumber": "Button #{{index}}",
       "url": "URL",
@@ -165,6 +165,12 @@
       "descPlaceholderEn": "Describe the project in English...",
       "descPlaceholderRu": "Describe the project in Russian...",
       "videoPlaceholder": "https://youtube.com/watch?v=..."
+    },
+    "gallery": {
+      "counter": "Gallery: {{count}}/7",
+      "limitReached": "Gallery limit reached (max 7 projects)",
+      "added": "Added to gallery",
+      "removed": "Removed from gallery"
     }
   }
 }

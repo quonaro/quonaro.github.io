@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useProjects } from '@/hooks/useProjects';
 import Autoplay from 'embla-carousel-autoplay';
@@ -12,6 +12,14 @@ import { ProjectsDialog } from './ProjectsDialog';
 import { GalleryCard } from './GalleryCard';
 import { cn } from '@/lib/utils';
 
+const PlaceholderCard = () => (
+    <div className="flex-1 min-h-[400px] sm:min-h-[300px] rounded-2xl bg-muted/5 border-2 border-dashed border-subtle/20 flex flex-col items-center justify-center p-6 transition-all duration-500">
+        <div className="w-12 h-12 rounded-full bg-muted/10 mb-4 animate-pulse" />
+        <div className="w-24 h-4 bg-muted/10 rounded animate-pulse mb-2" />
+        <div className="w-32 h-3 bg-muted/5 rounded animate-pulse" />
+    </div>
+);
+
 const ProjectGallery = () => {
     const { t } = useTranslation();
     const { projects } = useProjects();
@@ -19,8 +27,10 @@ const ProjectGallery = () => {
     const [current, setCurrent] = useState(0);
     const [count, setCount] = useState(0);
 
-    // Show top 5 projects
-    const galleryProjects = projects.slice(0, 5);
+    // Show gallery projects (max 7)
+    const galleryProjects = useMemo(() => {
+        return projects.filter(p => p.is_in_gallery);
+    }, [projects]);
 
     useEffect(() => {
         if (!api) return;
@@ -63,13 +73,23 @@ const ProjectGallery = () => {
                     className="w-full"
                 >
                     <CarouselContent className="-ml-0">
-                        {galleryProjects.map((project) => (
-                            <CarouselItem key={project.id} className="pl-0 basis-full">
-                                <div className="px-4">
-                                    <GalleryCard project={project} />
-                                </div>
-                            </CarouselItem>
-                        ))}
+                        {galleryProjects.length > 0 ? (
+                            galleryProjects.map((project) => (
+                                <CarouselItem key={project.id} className="pl-0 basis-full">
+                                    <div className="px-4">
+                                        <GalleryCard project={project} />
+                                    </div>
+                                </CarouselItem>
+                            ))
+                        ) : (
+                            Array.from({ length: 7 }).map((_, i) => (
+                                <CarouselItem key={i} className="pl-0 basis-full">
+                                    <div className="px-4">
+                                        <PlaceholderCard />
+                                    </div>
+                                </CarouselItem>
+                            ))
+                        )}
                     </CarouselContent>
                 </Carousel>
 
@@ -94,9 +114,15 @@ const ProjectGallery = () => {
 
             {/* Desktop Accordion View */}
             <div className="hidden sm:flex h-[400px] sm:h-[500px] w-full max-w-[1600px] mx-auto px-4 gap-2 group">
-                {galleryProjects.map((project) => (
-                    <GalleryCard key={project.id} project={project} />
-                ))}
+                {galleryProjects.length > 0 ? (
+                    galleryProjects.map((project) => (
+                        <GalleryCard key={project.id} project={project} />
+                    ))
+                ) : (
+                    Array.from({ length: 7 }).map((_, i) => (
+                        <PlaceholderCard key={i} />
+                    ))
+                )}
             </div>
 
 

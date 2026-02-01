@@ -34,4 +34,5 @@ export interface Project {
     };
     technologies: string[];
     media?: ProjectMedia[];
+    is_in_gallery?: boolean;
 }

@@ -18,10 +18,11 @@ interface GalleryCardProps {
     project: Project;
     forcedLanguage?: 'en' | 'ru';
     hideEditButton?: boolean;
+    forceHover?: boolean;
     className?: string;
 }
 
-export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false, className }: GalleryCardProps) => {
+export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false, forceHover = false, className }: GalleryCardProps) => {
     const { t, i18n } = useTranslation();
     const { isAuthenticated } = useAuth();
     const [api, setApi] = useState<CarouselApi>();
@@ -92,6 +93,8 @@ export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false, c
         }
     };
 
+    const isHovered = forceHover;
+
     return (
         <div
             className={cn(`
@@ -101,7 +104,9 @@ export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false, c
               group-hover:opacity-50 sm:hover:!opacity-100
               group-hover:grayscale sm:hover:!grayscale-0
               bg-muted/20 min-h-[400px] sm:min-h-[300px] w-full
-            `, className)}
+            `,
+                isHovered && "opacity-100 grayscale-0 sm:flex-[2.5]",
+                className)}
         >
             {/* Background Image */}
             <div className="absolute inset-0">
@@ -125,23 +130,23 @@ export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false, c
                                     <img
                                         src={media.url}
                                         alt={`${getLocal(project.name)} ${index + 1}`}
-                                        className="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-105"
+                                        className={cn("w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-105", isHovered && "scale-105")}
                                     />
                                 </CarouselItem>
                             ))}
                         </CarouselContent>
                         <CarouselPrevious
-                            className="left-2 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 delay-500 group-hover/card:delay-0 z-40"
+                            className={cn("left-2 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 delay-500 group-hover/card:delay-0 z-40", isHovered && "opacity-100 delay-0")}
                         />
                         <CarouselNext
-                            className="right-2 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 delay-500 group-hover/card:delay-0 z-40"
+                            className={cn("right-2 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 delay-500 group-hover/card:delay-0 z-40", isHovered && "opacity-100 delay-0")}
                         />
                     </Carousel>
                 ) : project.media && project.media.length > 0 ? (
                     <img
                         src={project.media[0].url}
                         alt={getLocal(project.name)}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-105"
+                        className={cn("w-full h-full object-cover transition-transform duration-700 group-hover/card:scale-105", isHovered && "scale-105")}
                     />
                 ) : (
                     <div className="w-full h-full bg-neutral-900 flex items-center justify-center text-neutral-700">
@@ -208,13 +213,13 @@ export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false, c
 
             {/* Content Content */}
             <div className="absolute inset-0 p-6 pb-10 flex flex-col justify-end pointer-events-none">
-                <div className="transition-all duration-300 transform translate-y-0 sm:translate-y-2 sm:group-hover/card:translate-y-0 opacity-100 sm:opacity-90 sm:group-hover/card:opacity-100 pointer-events-auto w-full">
+                <div className={cn("transition-all duration-300 transform translate-y-0 sm:translate-y-2 sm:group-hover/card:translate-y-0 opacity-100 sm:opacity-90 sm:group-hover/card:opacity-100 pointer-events-auto w-full", isHovered && "sm:translate-y-0 sm:opacity-100")}>
                     <h3 className="text-xl sm:text-2xl font-bold text-white mb-2 truncate">
                         {getLocal(project.name, 'Project Name')}
                     </h3>
 
                     {/* Expanded Content */}
-                    <div className="overflow-hidden transition-all duration-500 delay-75 max-h-60 opacity-100 sm:max-h-0 sm:opacity-0 sm:group-hover/card:max-h-60 sm:group-hover/card:opacity-100 mt-2">
+                    <div className={cn("overflow-hidden transition-all duration-500 delay-75 max-h-60 opacity-100 sm:max-h-0 sm:opacity-0 sm:group-hover/card:max-h-60 sm:group-hover/card:opacity-100 mt-2", isHovered && "sm:max-h-60 sm:opacity-100")}>
                         <p className="text-gray-300 text-[12px] sm:text-sm mb-4 line-clamp-2">
                             {getLocal(project.shortDescription)}
                         </p>

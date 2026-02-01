@@ -14,6 +14,8 @@ import { uploadProjectMedia } from '@/services/projects';
 import { toast } from 'sonner';
 import { GalleryCard } from '@/components/GalleryCard';
 
+import { cn } from '@/lib/utils';
+
 interface ProjectFormProps {
     initialData?: Project;
     onSubmit: (data: Project) => Promise<void>;
@@ -25,6 +27,7 @@ const AVAILABLE_ICONS = ['github', 'external', 'docs', 'download', 'play', 'yout
 export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProps) => {
     const { t } = useTranslation();
     const [uploading, setUploading] = useState(false);
+    const [previewLang, setPreviewLang] = useState<'en' | 'ru'>('en');
 
     // Normalization helper for legacy data or stringified JSON from DB
     const normalizeLocalField = (field: any) => {
@@ -154,28 +157,28 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
 
                     <Tabs defaultValue="en" className="w-full">
                         <TabsList className="grid w-full grid-cols-2 mb-6">
-                            <TabsTrigger value="en">🇺🇸 {t('admin.form.english')}</TabsTrigger>
-                            <TabsTrigger value="ru">🇷🇺 {t('admin.form.russian')}</TabsTrigger>
+                            <TabsTrigger value="en">{t('admin.form.english')}</TabsTrigger>
+                            <TabsTrigger value="ru">{t('admin.form.russian')}</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="en" className="space-y-4 mt-0 border-none p-0">
                             <div className="space-y-2">
-                                <Label>{t('admin.form.name')} 🇺🇸</Label>
+                                <Label>{t('admin.form.name')}</Label>
                                 <Input {...register('name.en', { required: true })} placeholder={t('admin.form.namePlaceholderEn')} />
                             </div>
                             <div className="space-y-2">
-                                <Label>{t('admin.form.shortDesc')} 🇺🇸</Label>
+                                <Label>{t('admin.form.shortDesc')}</Label>
                                 <Textarea {...register('shortDescription.en')} placeholder={t('admin.form.descPlaceholderEn')} className="min-h-[100px]" />
                             </div>
                         </TabsContent>
 
                         <TabsContent value="ru" className="space-y-4 mt-0 border-none p-0">
                             <div className="space-y-2">
-                                <Label>{t('admin.form.name')} 🇷🇺</Label>
+                                <Label>{t('admin.form.name')}</Label>
                                 <Input {...register('name.ru', { required: true })} placeholder={t('admin.form.namePlaceholderRu')} />
                             </div>
                             <div className="space-y-2">
-                                <Label>{t('admin.form.shortDesc')} 🇷🇺</Label>
+                                <Label>{t('admin.form.shortDesc')}</Label>
                                 <Textarea {...register('shortDescription.ru')} placeholder={t('admin.form.descPlaceholderRu')} className="min-h-[100px]" />
                             </div>
                         </TabsContent>
@@ -234,6 +237,9 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                         <div className="flex items-center gap-2 text-primary">
                             <Plus className="w-5 h-5" />
                             <h3 className="font-bold text-lg">{t('admin.form.buttonsCount')}</h3>
+                            <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-mono border border-primary/20">
+                                {buttonFields.length}/3
+                            </span>
                         </div>
                         {buttonFields.length < 3 && (
                             <Button type="button" size="sm" variant="outline" className="rounded-full px-4" onClick={() => appendButton({ url: '', label: { en: 'Link', ru: 'Ссылка' }, icon: 'external' })}>
@@ -274,11 +280,11 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-subtle/50">
                                     <div className="space-y-1">
-                                        <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">{t('admin.form.labelEn')} 🇺🇸</Label>
+                                        <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">{t('admin.form.labelEn')}</Label>
                                         <Input {...register(`buttons.${index}.label.en`)} placeholder="Learn More" className="h-9" />
                                     </div>
                                     <div className="space-y-1">
-                                        <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">{t('admin.form.labelRu')} 🇷🇺</Label>
+                                        <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">{t('admin.form.labelRu')}</Label>
                                         <Input {...register(`buttons.${index}.label.ru`)} placeholder="Подробнее" className="h-9" />
                                     </div>
                                 </div>
@@ -291,63 +297,58 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
             {/* Right Column: Previews & Actions */}
             <div className="hidden xl:flex flex-col w-[400px] 2xl:w-[500px] space-y-6">
                 <div className="flex-1 overflow-y-auto max-h-[80vh] space-y-6 pr-2 scrollbar-thin scrollbar-thumb-subtle">
-                    {/* RU Preview */}
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between pb-1 border-b border-subtle">
-                            <h3 className="font-bold text-sm flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                                {t('admin.form.ruPreview')}
-                            </h3>
+                    {/* Preview Toggle & Card */}
+                    <div className="space-y-4">
+                        <div className="bg-surface/30 p-1 rounded-full border border-subtle flex relative">
+                            <button
+                                type="button"
+                                onClick={() => setPreviewLang('en')}
+                                className={cn(
+                                    "flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-sm font-medium transition-all duration-300",
+                                    previewLang === 'en'
+                                        ? "bg-primary/10 text-primary shadow-sm"
+                                        : "text-muted-foreground hover:text-foreground"
+                                )}
+                            >
+                                English
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setPreviewLang('ru')}
+                                className={cn(
+                                    "flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-sm font-medium transition-all duration-300",
+                                    previewLang === 'ru'
+                                        ? "bg-primary/10 text-primary shadow-sm"
+                                        : "text-muted-foreground hover:text-foreground"
+                                )}
+                            >
+                                Русский
+                            </button>
                         </div>
-                        <div className="bg-surface/20 border border-subtle rounded-3xl flex items-center justify-center shadow-xl relative overflow-hidden">
-                            <div className="w-full h-[220px] flex">
+
+                        <div className="w-full relative overflow-hidden transition-all duration-500">
+                            <div className="w-full flex h-[500px]">
                                 <GalleryCard
+                                    key={previewLang} // Force re-render on lang change for animation
                                     project={{
                                         ...formValues,
                                         buttons: formValues.buttons || [],
                                         media: formValues.media || [],
                                         technologies: formValues.technologies || []
                                     }}
-                                    forcedLanguage="ru"
-                                    className="min-h-0 h-full"
+                                    forcedLanguage={previewLang}
+                                    forceHover={true}
+                                    hideEditButton={true}
+                                    className="min-h-[0px] h-full w-full"
                                 />
                             </div>
                         </div>
                     </div>
 
-                    {/* EN Preview */}
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between pb-1 border-b border-subtle">
-                            <h3 className="font-bold text-sm flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                                {t('admin.form.enPreview')}
-                            </h3>
-                        </div>
-                        <div className="bg-surface/20 border border-subtle rounded-3xl flex items-center justify-center shadow-xl relative overflow-hidden">
-                            <div className="w-full h-[220px] flex">
-                                <GalleryCard
-                                    project={{
-                                        ...formValues,
-                                        buttons: formValues.buttons || [],
-                                        media: formValues.media || [],
-                                        technologies: formValues.technologies || []
-                                    }}
-                                    forcedLanguage="en"
-                                    className="min-h-0 h-full"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-surface/30 p-4 rounded-2xl border border-subtle">
-                        <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
-                            {t('admin.form.previewDesc')}
-                        </p>
-                    </div>
                 </div>
 
                 {/* Actions (Moved from Sticky Footer) */}
-                <div className="bg-surface/50 backdrop-blur-md p-6 rounded-3xl border border-primary/20 shadow-2xl flex flex-col gap-3">
+                <div className="flex flex-col gap-3 mt-auto pt-4">
                     <Button
                         type="submit"
                         disabled={isSubmitting || uploading}
