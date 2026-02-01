@@ -25,7 +25,15 @@ export const ProjectCover = ({ project, className }: ProjectCoverProps) => {
                     className
                 )}
             >
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] tracking-tight leading-tight">
+                <h3
+                    className="text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)] tracking-tight leading-tight"
+                    style={{
+                        fontSize: config.fontSize ? `${config.fontSize}px` : undefined,
+                        fontWeight: config.fontWeight || 900,
+                        fontFamily: config.fontFamily === 'Golos' ? "'Golos Text', sans-serif" :
+                            config.fontFamily === 'Inter' ? "'Inter', sans-serif" : undefined
+                    }}
+                >
                     {text}
                 </h3>
                 {project.technologies && project.technologies.length > 0 && (

@@ -27,6 +27,9 @@ export interface ProjectCoverConfig {
     type: 'image' | 'generated';
     gradient?: string;
     text?: { en: string; ru: string };
+    fontSize?: number;
+    fontWeight?: string | number;
+    fontFamily?: string;
 }
 
 export interface Project {

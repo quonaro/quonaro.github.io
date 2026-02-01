@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { X, Upload, Loader2, Plus, Tags, Image as ImageIcon, Layout, Type, Save } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { compressImage } from '@/utils/media-compression';
 import { uploadProjectMedia } from '@/services/projects';
 import { toast } from 'sonner';
@@ -31,6 +33,12 @@ const GRADIENT_PRESETS = [
     'bg-gradient-to-tr from-emerald-500 via-teal-600 to-cyan-700',
     'bg-gradient-to-br from-zinc-900 via-slate-800 to-zinc-900',
     'bg-gradient-to-tr from-violet-600 via-indigo-700 to-blue-800',
+    'bg-gradient-to-br from-amber-500 via-orange-600 to-yellow-500',
+    'bg-gradient-to-tr from-fuchsia-600 via-pink-600 to-rose-500',
+    'bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800',
+    'bg-gradient-to-tr from-lime-500 via-emerald-600 to-teal-500',
+    'bg-gradient-to-br from-rose-600 via-red-700 to-fuchsia-700',
+    'bg-gradient-to-tr from-slate-700 via-zinc-800 to-gray-900',
 ];
 
 export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProps) => {
@@ -393,6 +401,73 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                                             placeholder={t('admin.form.emptyForProjectName')}
                                             className="h-9 bg-background/50 border-subtle rounded-xl text-xs"
                                         />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 border-t border-subtle/20 pt-4">
+                                    {/* Font Family */}
+                                    <div className="space-y-1.5">
+                                        <Label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold ml-1">Font Family</Label>
+                                        <div className="flex bg-background/50 p-1 rounded-xl border border-subtle">
+                                            <button
+                                                type="button"
+                                                onClick={() => setValue('cover_config.fontFamily', 'Inter')}
+                                                className={cn(
+                                                    "flex-1 px-3 py-1 rounded-lg text-[10px] font-bold transition-all",
+                                                    (formValues.cover_config?.fontFamily || 'Inter') === 'Inter' ? "bg-primary text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                                                )}
+                                            >
+                                                Inter
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setValue('cover_config.fontFamily', 'Golos')}
+                                                className={cn(
+                                                    "flex-1 px-3 py-1 rounded-lg text-[10px] font-bold transition-all",
+                                                    formValues.cover_config?.fontFamily === 'Golos' ? "bg-primary text-white shadow-sm" : "text-muted-foreground hover:text-foreground"
+                                                )}
+                                            >
+                                                Golos
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Font Size */}
+                                    <div className="space-y-1.5">
+                                        <div className="flex justify-between items-center px-1">
+                                            <Label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Size</Label>
+                                            <span className="text-[10px] font-bold text-primary">{formValues.cover_config?.fontSize || 32}px</span>
+                                        </div>
+                                        <Slider
+                                            value={[formValues.cover_config?.fontSize || 32]}
+                                            min={16}
+                                            max={80}
+                                            step={1}
+                                            onValueChange={(val) => setValue('cover_config.fontSize', val[0])}
+                                            className="py-2"
+                                        />
+                                    </div>
+
+                                    {/* Font Weight */}
+                                    <div className="space-y-1.5">
+                                        <Label className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold ml-1">Weight</Label>
+                                        <Select
+                                            value={String(formValues.cover_config?.fontWeight || 900)}
+                                            onValueChange={(val) => setValue('cover_config.fontWeight', Number(val))}
+                                        >
+                                            <SelectTrigger className="h-9 bg-background/50 border-subtle rounded-xl text-xs">
+                                                <SelectValue placeholder="Weight" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="300">Light (300)</SelectItem>
+                                                <SelectItem value="400">Regular (400)</SelectItem>
+                                                <SelectItem value="500">Medium (500)</SelectItem>
+                                                <SelectItem value="600">Semibold (600)</SelectItem>
+                                                <SelectItem value="700">Bold (700)</SelectItem>
+                                                <SelectItem value="800">Extrabold (800)</SelectItem>
+                                                <SelectItem value="900">Black (900)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                 </div>
                             </div>
