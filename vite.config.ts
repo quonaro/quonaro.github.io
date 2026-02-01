@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
-    base: env.VITE_BASE_URL || "./",
+    base: env.VITE_BASE_URL || "/",
     build: {
       outDir: "dist",
       assetsDir: "./assets/",
