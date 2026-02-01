@@ -24,37 +24,35 @@ const Navigation = () => {
 
   const scrollToSection = (sectionId: string) => {
     setIsMobileMenuOpen(false);
-    document.getElementById(sectionId)?.scrollIntoView({ 
+    document.getElementById(sectionId)?.scrollIntoView({
       behavior: 'smooth',
       block: 'start'
     });
   };
 
   const navItems = [
+    { label: t('navigation.projects'), id: 'projects' },
     { label: t('navigation.skills'), id: 'skills' },
     { label: t('navigation.services'), id: 'services' },
-    { label: t('navigation.projects'), id: 'projects' },
     { label: t('navigation.contact'), id: 'contact' },
   ];
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-smooth animate-fade-in-down ${
-      isScrolled 
-        ? 'bg-background/95 backdrop-blur-md border-b border-subtle' 
-        : 'bg-transparent'
-    }`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-smooth animate-fade-in-down ${isScrolled
+      ? 'bg-background/95 backdrop-blur-md border-b border-subtle'
+      : 'bg-transparent'
+      }`}>
       <div className="container max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="font-mono text-sm sm:text-lg font-semibold text-foreground hover:text-primary transition-smooth"
+          <a
+            href="https://github.com/quonaro"
+            className="flex items-center gap-2 font-mono text-sm sm:text-lg font-semibold text-foreground hover:text-primary transition-smooth"
           >
-            <a href="https://github.com/quonaro">
-              <span className="hidden sm:inline"><span className="text-terminal">$</span> quonaro.dev</span>
-              <span className="sm:hidden"><span className="text-terminal">$</span> quonaro</span>
-            </a>
-          </button>
+            <img src="/logo.png" alt="quonaro logo" className="h-6 w-6 sm:h-8 sm:w-8 object-contain" />
+            <span className="hidden sm:inline">quonaro.dev</span>
+            <span className="sm:hidden">quonaro</span>
+          </a>
 
           {/* Navigation items */}
           <div className="hidden md:flex items-center gap-8">

@@ -36,7 +36,7 @@ const ProjectGallery = () => {
     if (projects.length === 0) return null;
 
     return (
-        <section className="w-full bg-background py-12 sm:py-16 md:py-20 overflow-hidden">
+        <section id="projects" className="w-full bg-background py-12 sm:py-16 md:py-20 overflow-hidden">
             <div className="container mx-auto px-4 mb-10 sm:mb-12 md:mb-16 text-center">
                 <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 text-foreground">
                     {t('projects.title')}

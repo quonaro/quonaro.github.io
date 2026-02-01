@@ -39,7 +39,8 @@ const HeroSection = () => {
 
         {/* Main content */}
         <div className="space-y-4 sm:space-y-6">
-          <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold tracking-tight animate-fade-in-up" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
+          <h1 className="flex items-center justify-center gap-4 text-3xl sm:text-5xl md:text-7xl font-bold tracking-tight animate-fade-in-up" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
+            <img src="/logo.png" alt="quonaro logo" className="h-10 w-10 sm:h-14 sm:w-14 md:h-20 md:w-20 object-contain drop-shadow-xl" />
             <span className="text-foreground">{t('hero.name')}</span>
           </h1>
 
