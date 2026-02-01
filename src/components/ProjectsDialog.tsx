@@ -133,13 +133,13 @@ const ProjectCard = ({ project }: { project: Project }) => {
                         <>
                             {project.links.github && (
                                 <Button
-                                    variant="outline"
+                                    variant="default"
                                     size="sm"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         window.open(project.links!.github, '_blank', 'noopener,noreferrer');
                                     }}
-                                    className="flex-1 min-w-0 text-xs"
+                                    className="flex-1 min-w-0 text-[10px] font-bold uppercase tracking-wider bg-primary/30 hover:bg-primary/50 text-white border border-primary/40"
                                 >
                                     <Github className="w-3 h-3 mr-1.5" />
                                     {t('common.code')}
@@ -147,13 +147,13 @@ const ProjectCard = ({ project }: { project: Project }) => {
                             )}
                             {(project.links.demo || project.links.docs) && (
                                 <Button
-                                    variant="outline"
+                                    variant="default"
                                     size="sm"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         window.open(project.links!.docs || project.links!.demo, '_blank', 'noopener,noreferrer');
                                     }}
-                                    className="flex-1 min-w-0 text-xs"
+                                    className="flex-1 min-w-0 text-[10px] font-bold uppercase tracking-wider bg-primary/30 hover:bg-primary/50 text-white border border-primary/40"
                                 >
                                     <ExternalLink className="w-3 h-3 mr-1.5" />
                                     {project.links.docs ? t('common.docs') : t('common.demo')}
@@ -179,13 +179,13 @@ const ProjectCard = ({ project }: { project: Project }) => {
                         return (
                             <Button
                                 key={i}
-                                variant="outline"
+                                variant="default"
                                 size="sm"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     window.open(btn.url, '_blank', 'noopener,noreferrer');
                                 }}
-                                className="flex-1 min-w-0 text-xs"
+                                className="flex-1 min-w-0 text-[10px] font-bold uppercase tracking-wider bg-primary/20 hover:bg-primary/40 text-primary-foreground border border-primary/30"
                             >
                                 <Icon className="w-3 h-3 mr-1.5" />
                                 {getBtnLabel(btn)}

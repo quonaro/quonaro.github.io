@@ -14,10 +14,14 @@ const ProjectGallery = () => {
     if (projects.length === 0) return null;
 
     return (
-        <section className="w-full bg-background py-8 overflow-hidden">
-            <div className="container mx-auto px-4 mb-6 flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-foreground mb-2">{t('projects.title')}</h2>
-                <ProjectsDialog />
+        <section className="w-full bg-background py-12 sm:py-16 md:py-20 overflow-hidden">
+            <div className="container mx-auto px-4 mb-10 sm:mb-12 md:mb-16 text-center">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 text-foreground">
+                    {t('projects.title')}
+                </h2>
+                <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto px-2 sm:px-0">
+                    {t('projects.subtitle')}
+                </p>
             </div>
 
             {/* Container with 'group' to handle sibling dampening effect */}
@@ -25,6 +29,10 @@ const ProjectGallery = () => {
                 {galleryProjects.map((project) => (
                     <GalleryCard key={project.id} project={project} />
                 ))}
+            </div>
+
+            <div className="container mx-auto px-4 mt-8 sm:mt-12 text-center">
+                <ProjectsDialog />
             </div>
         </section>
     );

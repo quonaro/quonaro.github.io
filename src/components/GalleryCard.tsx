@@ -158,9 +158,9 @@ export const GalleryCard = ({ project, forcedLanguage }: GalleryCardProps) => {
                                 return (
                                     <Button
                                         key={i}
-                                        variant="secondary"
+                                        variant="default"
                                         size="sm"
-                                        className="h-8 text-xs"
+                                        className="h-8 text-[10px] font-bold uppercase tracking-wider bg-primary/30 hover:bg-primary/50 text-white border border-primary/40"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             window.open(btn.url, '_blank', 'noopener,noreferrer');
