@@ -113,7 +113,7 @@ const ProjectGallery = () => {
 
 
             {/* Desktop Accordion View */}
-            <div className="hidden sm:flex h-[400px] sm:h-[500px] w-full max-w-[1600px] mx-auto px-4 gap-2 group">
+            <div className="hidden sm:flex h-[400px] sm:h-[500px] w-full max-w-[calc(100%_-_120px)] mx-auto px-4 gap-2 group">
                 {galleryProjects.length > 0 ? (
                     galleryProjects.map((project) => (
                         <GalleryCard key={project.id} project={project} />
