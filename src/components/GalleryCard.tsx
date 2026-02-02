@@ -147,23 +147,25 @@ export const GalleryCard = ({ project, forcedLanguage, hideEditButton = false, f
                                     loop: true,
                                     watchDrag: !disableGestures
                                 }}
-                                plugins={disableGestures ? [] : [
+                                plugins={[
                                     Fade(),
-                                    Autoplay({
-                                        delay: autoplayDelay,
-                                        stopOnInteraction: false,
-                                        stopOnMouseEnter: true
-                                    })
+                                    ...(!disableGestures ? [
+                                        Autoplay({
+                                            delay: autoplayDelay,
+                                            stopOnInteraction: false,
+                                            stopOnMouseEnter: true
+                                        })
+                                    ] : [])
                                 ]}
                             >
                                 <CarouselContent className="h-full ml-0">
                                     {project.media.map((media, index) => (
-                                        <CarouselItem key={index} className="h-full pl-0">
+                                        <CarouselItem key={index} className="h-full pl-0 bg-neutral-950">
                                             <img
                                                 src={media.url}
                                                 alt={`${getLocal(project.name)} ${index + 1}`}
                                                 className={cn(
-                                                    "w-full h-full transition-transform duration-700",
+                                                    "w-full h-full transition-transform duration-75 ease-out",
                                                     (media.scale || media.translate) ? "object-contain" : (media.objectFit === 'contain' ? "object-contain" : "object-cover")
                                                 )}
                                                 style={{

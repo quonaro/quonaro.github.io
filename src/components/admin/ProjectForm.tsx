@@ -8,7 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { X, Upload, Loader2, Plus, Tags, Image as ImageIcon, Layout, Type, Save } from 'lucide-react';
+import { X, Upload, Loader2, Plus, Tags, Image as ImageIcon, Layout, Type, Save, GripVertical } from 'lucide-react';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy } from '@dnd-kit/sortable';
+import { SortableMediaItem } from './SortableMediaItem';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { compressImage } from '@/utils/media-compression';
@@ -16,6 +19,7 @@ import { uploadProjectMedia } from '@/services/projects';
 import { toast } from 'sonner';
 import { GalleryCard } from '@/components/GalleryCard';
 
+import { ProjectPreview } from './ProjectPreview';
 import { cn } from '@/lib/utils';
 
 interface ProjectFormProps {
@@ -47,10 +51,6 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
     const [previewLang, setPreviewLang] = useState<'en' | 'ru'>('en');
     const [previewApi, setPreviewApi] = useState<any>();
     const [activeSlideIndex, setActiveSlideIndex] = useState(0);
-    const [isDragging, setIsDragging] = useState(false);
-    const [isResizing, setIsResizing] = useState(false);
-    const [dragStart, setDragStart] = useState({ x: 0, y: 0, pos: { x: 0, y: 0 }, scale: 1 });
-    const [imageDimensions, setImageDimensions] = useState<{ [key: string]: { width: number, height: number, ratio: number } }>({});
 
     // Normalization helper
     const normalizeLocalField = (field: any) => {
@@ -91,10 +91,27 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
     const formValues = watch();
     const coverType = watch('cover_config.type') || (formValues.cover_image ? 'image' : 'generated');
 
-    const { fields: mediaFields, append: appendMedia, remove: removeMedia } = useFieldArray({
+    const { fields: mediaFields, append: appendMedia, remove: removeMedia, move: moveMedia } = useFieldArray({
         control,
         name: "media"
     });
+
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+
+        if (over && active.id !== over.id) {
+            const oldIndex = mediaFields.findIndex((item) => item.id === active.id);
+            const newIndex = mediaFields.findIndex((item) => item.id === over.id);
+            moveMedia(oldIndex, newIndex);
+        }
+    };
 
     const { fields: buttonFields, append: appendButton, remove: removeButton } = useFieldArray({
         control,
@@ -109,121 +126,12 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
         return () => { previewApi.off('select', onSelect); };
     }, [previewApi]);
 
-    const handleDragStart = (e: React.MouseEvent) => {
-        const media = formValues.media?.[activeSlideIndex];
-        if (!media || media.type !== 'image') return;
-
-        setIsDragging(true);
-        setDragStart({
-            x: e.clientX,
-            y: e.clientY,
-            pos: media.translate || { x: 0, y: 0 },
-            scale: media.scale || 1
-        });
-    };
-
-    const handleResizeStart = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        const media = formValues.media?.[activeSlideIndex];
-        if (!media || media.type !== 'image') return;
-
-        setIsResizing(true);
-        setDragStart({
-            x: e.clientX,
-            y: e.clientY,
-            pos: media.translate || { x: 0, y: 0 },
-            scale: media.scale || 1
-        });
-    };
-
-    const handleMouseMove = (e: React.MouseEvent) => {
-        if (isDragging) {
-            const deltaX = e.clientX - dragStart.x;
-            const deltaY = e.clientY - dragStart.y;
-
-            const newX = dragStart.pos.x + deltaX;
-            const newY = dragStart.pos.y + deltaY;
-
-            const updatedMedia = [...(formValues.media || [])];
-            if (updatedMedia[activeSlideIndex]) {
-                updatedMedia[activeSlideIndex] = {
-                    ...updatedMedia[activeSlideIndex],
-                    translate: { x: newX, y: newY }
-                };
-                setValue('media', updatedMedia);
-            }
-        } else if (isResizing) {
-            const deltaY = dragStart.y - e.clientY;
-            const deltaX = e.clientX - dragStart.x;
-            const delta = (Math.abs(deltaY) > Math.abs(deltaX) ? deltaY : deltaX) * 0.01;
-
-            const newScale = Math.max(0.1, Math.min(5, dragStart.scale + delta));
-
-            const updatedMedia = [...(formValues.media || [])];
-            if (updatedMedia[activeSlideIndex]) {
-                updatedMedia[activeSlideIndex] = {
-                    ...updatedMedia[activeSlideIndex],
-                    scale: newScale
-                };
-                setValue('media', updatedMedia);
-            }
-        }
-    };
-
-    const handleMouseUp = () => {
-        setIsDragging(false);
-        setIsResizing(false);
-    };
-
-    const updateScale = (val: number[]) => {
+    const updateMedia = (index: number, updates: any) => {
         const updatedMedia = [...(formValues.media || [])];
-        if (updatedMedia[activeSlideIndex]) {
-            updatedMedia[activeSlideIndex] = {
-                ...updatedMedia[activeSlideIndex],
-                scale: val[0]
-            };
+        if (updatedMedia[index]) {
+            updatedMedia[index] = { ...updatedMedia[index], ...updates };
             setValue('media', updatedMedia);
         }
-    };
-
-    const handleImageLoad = (url: string, e: React.SyntheticEvent<HTMLImageElement>) => {
-        const { naturalWidth, naturalHeight } = e.currentTarget;
-        setImageDimensions(prev => ({
-            ...prev,
-            [url]: {
-                width: naturalWidth,
-                height: naturalHeight,
-                ratio: naturalWidth / naturalHeight
-            }
-        }));
-    };
-
-    const getFrameStyles = () => {
-        const media = formValues.media?.[activeSlideIndex];
-        if (!media || !imageDimensions[media.url]) return { width: '100%', height: '100%' };
-
-        const dim = imageDimensions[media.url];
-        const containerWidth = 800;
-        const containerHeight = 500;
-        const containerRatio = containerWidth / containerHeight;
-
-        let frameWidth, frameHeight;
-        if (dim.ratio > containerRatio) {
-            frameWidth = containerWidth;
-            frameHeight = containerWidth / dim.ratio;
-        } else {
-            frameHeight = containerHeight;
-            frameWidth = containerHeight * dim.ratio;
-        }
-
-        return {
-            width: `${frameWidth}px`,
-            height: `${frameHeight}px`,
-            left: '50%',
-            top: '50%',
-            marginLeft: `-${frameWidth / 2}px`,
-            marginTop: `-${frameHeight / 2}px`
-        };
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isCover: boolean = false) => {
@@ -481,41 +389,36 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
                         <Label className="text-muted-foreground flex items-center gap-2">
                             <ImageIcon className="w-4 h-4" /> {t('admin.form.media')} (Gallery)
                         </Label>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                            {mediaFields.map((field, index) => (
-                                <div
-                                    key={field.id}
-                                    onClick={() => previewApi?.scrollTo(index)}
-                                    className={cn(
-                                        "relative group aspect-video bg-muted/40 rounded-xl overflow-hidden border transition-all cursor-pointer shadow-inner",
-                                        activeSlideIndex === index ? "border-primary ring-2 ring-primary/20 scale-95" : "border-subtle"
-                                    )}
-                                >
-                                    <img
-                                        src={field.url}
-                                        alt="preview"
-                                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                        onLoad={(e) => handleImageLoad(field.url, e)}
-                                    />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
-                                        <Button
-                                            type="button"
-                                            size="icon"
-                                            variant="destructive"
-                                            className="h-8 w-8 rounded-full"
-                                            onClick={() => removeMedia(index)}
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </Button>
-                                    </div>
+                        <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={handleDragEnd}
+                        >
+                            <SortableContext
+                                items={mediaFields.map(f => f.id)}
+                                strategy={rectSortingStrategy}
+                            >
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                    {mediaFields.map((field, index) => (
+                                        <SortableMediaItem
+                                            key={field.id}
+                                            id={field.id}
+                                            media={field}
+                                            index={index}
+                                            isActive={activeSlideIndex === index}
+                                            onRemove={() => removeMedia(index)}
+                                            onPreview={() => previewApi?.scrollTo(index)}
+                                        />
+                                    ))}
+
+                                    <label className="flex flex-col items-center justify-center aspect-video border-2 border-dashed border-subtle rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
+                                        {uploading ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : <Upload className="w-6 h-6 text-muted-foreground group-hover:text-primary" />}
+                                        <span className="text-[10px] mt-2 font-medium text-muted-foreground group-hover:text-primary uppercase tracking-wider text-center">{t('admin.form.uploadImages')}</span>
+                                        <input type="file" multiple accept="image/*" onChange={(e) => handleFileUpload(e, false)} className="hidden" />
+                                    </label>
                                 </div>
-                            ))}
-                            <label className="flex flex-col items-center justify-center aspect-video border-2 border-dashed border-subtle rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
-                                {uploading ? <Loader2 className="w-6 h-6 animate-spin text-primary" /> : <Upload className="w-6 h-6 text-muted-foreground group-hover:text-primary" />}
-                                <span className="text-[10px] mt-2 font-medium text-muted-foreground group-hover:text-primary uppercase tracking-wider text-center">{t('admin.form.uploadImages')}</span>
-                                <input type="file" multiple accept="image/*" onChange={(e) => handleFileUpload(e, false)} className="hidden" />
-                            </label>
-                        </div>
+                            </SortableContext>
+                        </DndContext>
                     </div>
 
                     <div className="pt-4 border-t border-subtle/50">
@@ -637,136 +540,16 @@ export const ProjectForm = ({ initialData, onSubmit, onCancel }: ProjectFormProp
 
             {/* Right Column: Previews & Actions */}
             <div className="hidden xl:flex flex-col w-[450px] 2xl:w-[600px] space-y-6">
-                <div className="flex-1 overflow-y-auto max-h-[80vh] space-y-6 pr-2 scrollbar-thin scrollbar-thumb-subtle">
-                    {/* Preview Toggle & Card */}
-                    <div className="space-y-4">
-                        <div className="bg-surface/30 p-1 rounded-full border border-subtle flex relative">
-                            {/* ... buttons for en/ru ... */}
-                            <button
-                                type="button"
-                                onClick={() => setPreviewLang('en')}
-                                className={cn(
-                                    "flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-sm font-medium transition-all duration-300",
-                                    previewLang === 'en'
-                                        ? "bg-primary/10 text-primary shadow-sm"
-                                        : "text-muted-foreground hover:text-foreground"
-                                )}
-                            >
-                                English
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setPreviewLang('ru')}
-                                className={cn(
-                                    "flex-1 flex items-center justify-center gap-2 py-2 rounded-full text-sm font-medium transition-all duration-300",
-                                    previewLang === 'ru'
-                                        ? "bg-primary/10 text-primary shadow-sm"
-                                        : "text-muted-foreground hover:text-foreground"
-                                )}
-                            >
-                                Русский
-                            </button>
-                        </div>
-
-                        <div className="w-full relative overflow-hidden transition-all duration-500 rounded-2xl shadow-2xl border border-subtle bg-neutral-950">
-                            <div
-                                className={cn(
-                                    "w-full h-[500px] cursor-move select-none relative group/preview",
-                                    isDragging && "cursor-grabbing",
-                                    isResizing && "cursor-nwse-resize"
-                                )}
-                                onMouseDown={handleDragStart}
-                                onMouseMove={handleMouseMove}
-                                onMouseUp={handleMouseUp}
-                                onMouseLeave={handleMouseUp}
-                            >
-                                {/* Photoshop-style Canvas Border & Handles - Sync with content transform and ratio */}
-                                <div
-                                    className="absolute pointer-events-none z-20 opacity-0 group-hover/preview:opacity-100 transition-opacity border-2 border-primary/40 rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.5)] bg-primary/5"
-                                    style={{
-                                        ...getFrameStyles(),
-                                        transform: `
-                                            translate(${formValues.media?.[activeSlideIndex]?.translate?.x || 0}px, ${formValues.media?.[activeSlideIndex]?.translate?.y || 0}px)
-                                            scale(${formValues.media?.[activeSlideIndex]?.scale || 1})
-                                        `,
-                                        transformOrigin: 'center'
-                                    }}
-                                >
-                                    {/* Corner Handles */}
-                                    <div
-                                        className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-primary border border-white rounded-sm pointer-events-auto cursor-nwse-resize hover:scale-125 transition-transform"
-                                        onMouseDown={handleResizeStart}
-                                    />
-                                    <div
-                                        className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-primary border border-white rounded-sm pointer-events-auto cursor-nesw-resize hover:scale-125 transition-transform"
-                                        onMouseDown={handleResizeStart}
-                                    />
-                                    <div
-                                        className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-primary border border-white rounded-sm pointer-events-auto cursor-nesw-resize hover:scale-125 transition-transform"
-                                        onMouseDown={handleResizeStart}
-                                    />
-                                    <div
-                                        className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-primary border border-white rounded-sm pointer-events-auto cursor-nwse-resize hover:scale-125 transition-transform"
-                                        onMouseDown={handleResizeStart}
-                                    />
-
-                                    {/* Visual corners */}
-                                    <div className="absolute top-0 left-0 w-4 h-4 border-l-2 border-t-2 border-primary" />
-                                    <div className="absolute top-0 right-0 w-4 h-4 border-r-2 border-t-2 border-primary" />
-                                    <div className="absolute bottom-0 left-0 w-4 h-4 border-l-2 border-b-2 border-primary" />
-                                    <div className="absolute bottom-0 right-0 w-4 h-4 border-r-2 border-b-2 border-primary" />
-                                </div>
-
-                                <GalleryCard
-                                    key={previewLang} // Force re-render on lang change for animation
-                                    project={{
-                                        ...formValues,
-                                        buttons: formValues.buttons || [],
-                                        media: formValues.media || [],
-                                        technologies: formValues.technologies || []
-                                    }}
-                                    forcedLanguage={previewLang}
-                                    forceHover={true}
-                                    hideEditButton={true}
-                                    setCarouselApi={setPreviewApi}
-                                    disableGestures={true}
-                                    className="min-h-[0px] h-full w-full pointer-events-none"
-                                />
-                            </div>
-
-                            {/* Transformation Toolbar */}
-                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-xl border border-white/10 px-6 py-3 rounded-2xl flex items-center gap-6 z-50 shadow-2xl min-w-[300px]">
-                                <div className="flex flex-col gap-1 flex-1">
-                                    <div className="flex justify-between items-center text-[10px] uppercase tracking-widest font-bold text-white/50">
-                                        <span>Scale / Zoom</span>
-                                        <span className="text-primary">{Math.round((formValues.media?.[activeSlideIndex]?.scale || 1) * 100)}%</span>
-                                    </div>
-                                    <input
-                                        type="range"
-                                        min="0.1"
-                                        max="5"
-                                        step="0.01"
-                                        value={formValues.media?.[activeSlideIndex]?.scale || 1}
-                                        onChange={(e) => updateScale([parseFloat(e.target.value)])}
-                                        className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary"
-                                    />
-                                </div>
-                                <div className="h-8 w-px bg-white/10" />
-                                <div className="text-[10px] uppercase tracking-widest font-bold text-white/50 whitespace-nowrap">
-                                    Pan Enabled
-                                </div>
-                            </div>
-
-                            {/* Help Overlay */}
-                            {!isDragging && (
-                                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold text-white/80 pointer-events-none flex items-center gap-2 border border-white/10 z-50">
-                                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                                    TRANSFORM MODE: DRAG TO PAN | SLIDER TO ZOOM
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
+                <div className="flex-1 overflow-y-auto max-h-[80vh] pr-2 scrollbar-thin scrollbar-thumb-subtle">
+                    <ProjectPreview
+                        formValues={formValues}
+                        activeSlideIndex={activeSlideIndex}
+                        previewApi={previewApi}
+                        setPreviewApi={setPreviewApi}
+                        previewLang={previewLang}
+                        setPreviewLang={setPreviewLang}
+                        onUpdateMedia={updateMedia}
+                    />
                 </div>
 
                 {/* Actions (Moved from Sticky Footer) */}
